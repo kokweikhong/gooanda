@@ -6,4 +6,4 @@
 - [ ] Trade
 - [ ] Position
 - [ ] Transaction
-- [:green_circle:] Pricing
+- [ ] Pricing
