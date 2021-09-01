@@ -1,7 +1,7 @@
 
 ## TODO
 
-###### OANDA endpoints
+#### OANDA endpoints
 
 - [ ] Account
 - [x] Instrument
@@ -10,3 +10,8 @@
 - [ ] Position
 - [ ] Transaction
 - [ ] Pricing
+
+#### Features
+
+- [ ] Function to convert struct to json format
+- [ ] Add POST request function
