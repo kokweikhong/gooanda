@@ -6,4 +6,4 @@
 - [ ] Trade
 - [ ] Position
 - [ ] Transaction
-- [ ] Pricing
+- [:x:] Pricing
