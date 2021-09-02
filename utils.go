@@ -33,7 +33,6 @@ func convertQuerys(querys interface{}) (map[string]interface{}, error) {
 		return nil, err
 	}
 	err = json.Unmarshal(data, &mapQuery)
-	fmt.Println(mapQuery)
 	if err != nil {
 		return nil, err
 	}
