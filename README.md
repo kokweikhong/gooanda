@@ -4,13 +4,21 @@
 #### OANDA endpoints
 
 - Account
-    - [x] Accounts
-- [x] Instrument
-- [ ] Order
-- [ ] Trade
-- [ ] Position
-- [ ] Transaction
-- [ ] Pricing
+    - [x] :green_square: Accounts
+    - [x] AccountsByID
+    - [x] AccountSummary
+    - [x] AccountInstruments
+    - [ ] AccountConfiguration
+    - [ ] AccountChanges
+- Instrument
+    - [x] InstrumentCandles
+    - [x] InstrumentOrderBook
+    - [x] InstrumentPositionBook
+- Order
+- Trade
+- Position
+- Transaction
+- Pricing
 
 #### Features
 
