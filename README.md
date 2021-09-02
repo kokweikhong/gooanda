@@ -4,16 +4,16 @@
 #### OANDA endpoints
 
 - Account
-    - [x] [GET]:green_square: Accounts
-    - [x] AccountsByID
-    - [x] AccountSummary
-    - [x] AccountInstruments
-    - [ ] AccountConfiguration
-    - [ ] AccountChanges
+    - [x] [GET] Accounts
+    - [x] [GET] AccountsByID
+    - [x] [GET] AccountSummary
+    - [x] [GET] AccountInstruments
+    - [ ] [PATCH] AccountConfiguration
+    - [ ] [GET] AccountChanges
 - Instrument
-    - [x] InstrumentCandles
-    - [x] InstrumentOrderBook
-    - [x] InstrumentPositionBook
+    - [x] [GET] InstrumentCandles
+    - [x] [GET] InstrumentOrderBook
+    - [x] [GET] InstrumentPositionBook
 - Order
 - Trade
 - Position
