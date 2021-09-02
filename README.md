@@ -4,7 +4,7 @@
 #### OANDA endpoints
 
 - Account
-    - [x] :green_square: Accounts
+    - [x] [GET]:green_square: Accounts
     - [x] AccountsByID
     - [x] AccountSummary
     - [x] AccountInstruments
