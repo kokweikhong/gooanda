@@ -3,7 +3,8 @@
 
 #### OANDA endpoints
 
-- [ ] Account
+- Account
+    - [x] Accounts
 - [x] Instrument
 - [ ] Order
 - [ ] Trade
