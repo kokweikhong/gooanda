@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/kokweikhong/gooanda/addr"
+	"github.com/kokweikhong/gooanda/opts"
 )
 
 // Accounts data structure
-type Accounts struct { // {{{
+type AccountList struct { // {{{
 	Accounts []struct {
 		ID           string   `json:"id"`
 		Mt4AccountID int      `json:"mt4AccountID,omitempty"`
@@ -94,15 +94,28 @@ type position struct {
 	UnrealizedPL string `json:"unrealizedPL"`
 }
 
+type account connection
+
+// NewAccountConnection create a new connection for account endpoint
+func NewAccountConnection(token string) *account {
+	return &account{token: token}
+}
+
+func (ac *account) connect() []byte {
+	con := &connection{ac.endpoint, ac.method, ac.token, ac.data}
+	return con.connect()
+}
+
 // Get the list of tradeable instruments for the given Account. The list of tradeable instruments is dependent on the regulatory division that the Account is located in, thus should be the same for all Accounts owned by a single user.
-func GetAccountInstruments(token, accountID string, querys ...accountOpts) *AccountInstruments { // {{{
-	q := newAccountQuery(querys...)
+func (ac *account) GetAccountInstruments(accountID string, querys ...opts.AccountOpts) *AccountInstruments { // {{{
+	q := opts.NewAccountQuery(querys...)
 	u, err := urlAddQuery(fmt.Sprintf(addr.AccountInstrument, accountID), q)
 	if err != nil {
 		log.Fatal(err)
 	}
-	conn := &connection{u, http.MethodGet, token}
-	resp := conn.connect()
+	ac.endpoint = u
+	ac.method = http.MethodGet
+	resp := ac.connect()
 	data := &AccountInstruments{}
 	if err = json.Unmarshal(resp, &data); err != nil {
 		log.Fatal(err)
@@ -111,15 +124,16 @@ func GetAccountInstruments(token, accountID string, querys ...accountOpts) *Acco
 } // }}}
 
 // Get a summary for a single Account that a client has access to.
-func GetAccountSummary(token, accountID string, querys ...accountOpts) *AccountSummary { // {{{
-	q := newAccountQuery(querys...)
+func (ac *account) GetAccountSummary(accountID string, querys ...opts.AccountOpts) *AccountSummary { // {{{
+	q := opts.NewAccountQuery(querys...)
 	fmt.Println(q.Instruments, q.SinceTransactionID)
 	u, err := urlAddQuery(fmt.Sprintf(addr.AccountSummary, accountID), q)
 	if err != nil {
 		log.Fatal(err)
 	}
-	conn := &connection{u, http.MethodGet, token}
-	resp := conn.connect()
+	ac.endpoint = u
+	ac.method = http.MethodGet
+	resp := ac.connect()
 	data := &AccountSummary{}
 	err = json.Unmarshal(resp, &data)
 	if err != nil {
@@ -129,14 +143,15 @@ func GetAccountSummary(token, accountID string, querys ...accountOpts) *AccountS
 } // }}}
 
 // Get the full details for a single Account that a client has access to. Full pending Order, open Trade and open Position representations are provided.
-func GetAccountById(token, accountID string, querys ...accountOpts) *AccountById { // {{{
-	q := newAccountQuery(querys...)
+func (ac *account) GetAccountById(accountID string, querys ...opts.AccountOpts) *AccountById { // {{{
+	q := opts.NewAccountQuery(querys...)
 	u, err := urlAddQuery(fmt.Sprintf(addr.AccountsById, accountID), q)
 	if err != nil {
 		log.Fatal(err)
 	}
-	conn := &connection{u, http.MethodGet, token}
-	resp := conn.connect()
+	ac.endpoint = u
+	ac.method = http.MethodGet
+	resp := ac.connect()
 	data := &AccountById{}
 	if err = json.Unmarshal(resp, &data); err != nil {
 		log.Fatal(err)
@@ -145,51 +160,18 @@ func GetAccountById(token, accountID string, querys ...accountOpts) *AccountById
 } // }}}
 
 // Get the full details for a single Account that a client has access to. Full pending Order, open Trade and open Position representations are provided.
-func GetAccounts(token string, querys ...accountOpts) *Accounts { // {{{
-	q := newAccountQuery(querys...)
+func (ac *account) GetAccountList(querys ...opts.AccountOpts) *AccountList { // {{{
+	q := opts.NewAccountQuery(querys...)
 	u, err := urlAddQuery(addr.Accounts, q)
 	if err != nil {
 		log.Fatal(err)
 	}
-	conn := &connection{
-		endpoint: u,
-		method:   http.MethodGet,
-		token:    token,
-	}
-
-	resp := conn.connect()
-	var data = &Accounts{}
+	ac.endpoint = u
+	ac.method = http.MethodGet
+	resp := ac.connect()
+	var data = &AccountList{}
 	if err = json.Unmarshal(resp, &data); err != nil {
 		log.Fatal(err)
 	}
 	return data
-} // }}}
-
-type accountQuery struct { // {{{
-	SinceTransactionID string `json:"sinceTransactionID,omitempty"`
-	Instruments        string `json:"instruments,omitempty"`
-} // }}}
-
-type accountOpts func(*accountQuery)
-
-func newAccountQuery(querys ...accountOpts) *accountQuery {
-	q := &accountQuery{}
-	for _, query := range querys {
-		query(q)
-	}
-	return q
-}
-
-// List of instruments to query specifically.
-func QAccountInstruments(instruments []string) accountOpts { // {{{
-	return func(aq *accountQuery) {
-		aq.Instruments = strings.Join(instruments, ",")
-	}
-} // }}}
-
-// ID of the Transaction to get Account changes since.
-func QAccountSinceTransactionID(transactionID string) accountOpts { // {{{
-	return func(aq *accountQuery) {
-		aq.SinceTransactionID = transactionID
-	}
 } // }}}
