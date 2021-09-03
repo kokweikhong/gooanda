@@ -1,7 +1,8 @@
 package addr
 
 const (
-	livehost = "https://api-fxtrade.oanda.com"
+	streamhost = "https://stream-fxtrade.oanda.com"
+	livehost   = "https://api-fxtrade.oanda.com"
 
 	// Account endpoints
 	Accounts          = livehost + "/v3/accounts"
@@ -17,4 +18,10 @@ const (
 	// Order endpoints
 	Orders        = livehost + "/v3/accounts/%v/orders"
 	PendingOrders = livehost + "/v3/accounts/%v/pendingOrders"
+
+	// Pricing endpoints
+	PrCandleLatest       = livehost + "/v3/accounts/%v/candles/latest"
+	PrPricingInfo        = livehost + "/v3/accounts/%v/pricing"
+	PrPricingStream      = streamhost + "/v3/accounts/%v/pricing/stream"
+	PrInstrumentCandlees = livehost + "/v3/accounts/%v/instruments/instrument/candles"
 )
