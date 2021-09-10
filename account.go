@@ -107,9 +107,15 @@ func (ac *account) connect() []byte {
 }
 
 // Get the list of tradeable instruments for the given Account. The list of tradeable instruments is dependent on the regulatory division that the Account is located in, thus should be the same for all Accounts owned by a single user.
-func (ac *account) GetAccountInstruments(accountID string, querys ...opts.AccountOpts) *AccountInstruments { // {{{
+func (ac *account) GetAccountInstruments(live bool, accountID string, querys ...opts.AccountOpts) *AccountInstruments { // {{{
 	q := opts.NewAccountQuery(querys...)
-	u, err := urlAddQuery(fmt.Sprintf(addr.AccountInstrument, accountID), q)
+	var url string
+	if live {
+		url = fmt.Sprintf(addr.AccountInstrument, addr.LiveHost, accountID)
+	} else if !live {
+		url = fmt.Sprintf(addr.AccountInstrument, addr.PracticeHost, accountID)
+	}
+	u, err := urlAddQuery(url, q)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -124,10 +130,15 @@ func (ac *account) GetAccountInstruments(accountID string, querys ...opts.Accoun
 } // }}}
 
 // Get a summary for a single Account that a client has access to.
-func (ac *account) GetAccountSummary(accountID string, querys ...opts.AccountOpts) *AccountSummary { // {{{
+func (ac *account) GetAccountSummary(live bool, accountID string, querys ...opts.AccountOpts) *AccountSummary { // {{{
 	q := opts.NewAccountQuery(querys...)
-	fmt.Println(q.Instruments, q.SinceTransactionID)
-	u, err := urlAddQuery(fmt.Sprintf(addr.AccountSummary, accountID), q)
+	var url string
+	if live {
+		url = fmt.Sprintf(addr.AccountSummary, addr.LiveHost, accountID)
+	} else if !live {
+		url = fmt.Sprintf(addr.AccountSummary, addr.PracticeHost, accountID)
+	}
+	u, err := urlAddQuery(url, q)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -143,9 +154,15 @@ func (ac *account) GetAccountSummary(accountID string, querys ...opts.AccountOpt
 } // }}}
 
 // Get the full details for a single Account that a client has access to. Full pending Order, open Trade and open Position representations are provided.
-func (ac *account) GetAccountById(accountID string, querys ...opts.AccountOpts) *AccountById { // {{{
+func (ac *account) GetAccountById(live bool, accountID string, querys ...opts.AccountOpts) *AccountById { // {{{
 	q := opts.NewAccountQuery(querys...)
-	u, err := urlAddQuery(fmt.Sprintf(addr.AccountsById, accountID), q)
+	var url string
+	if live {
+		url = fmt.Sprintf(addr.AccountsById, addr.LiveHost, accountID)
+	} else if !live {
+		url = fmt.Sprintf(addr.AccountsById, addr.PracticeHost, accountID)
+	}
+	u, err := urlAddQuery(url, q)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -160,9 +177,15 @@ func (ac *account) GetAccountById(accountID string, querys ...opts.AccountOpts) 
 } // }}}
 
 // Get the full details for a single Account that a client has access to. Full pending Order, open Trade and open Position representations are provided.
-func (ac *account) GetAccountList(querys ...opts.AccountOpts) *AccountList { // {{{
+func (ac *account) GetAccountList(live bool, querys ...opts.AccountOpts) *AccountList { // {{{
 	q := opts.NewAccountQuery(querys...)
-	u, err := urlAddQuery(addr.Accounts, q)
+	var url string
+	if live {
+		url = fmt.Sprintf(addr.Accounts, addr.LiveHost)
+	} else if !live {
+		url = fmt.Sprintf(addr.Accounts, addr.PracticeHost)
+	}
+	u, err := urlAddQuery(url, q)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -66,9 +66,15 @@ func (in *instrument) connect() []byte {
 }
 
 // GetInstrumentCandles: Fetch candlestick data for an instrument.
-func (in *instrument) GetCandles(instrument string, querys ...opts.InstrumentOpts) *InstrumentCandles {
+func (in *instrument) GetCandles(live bool, instrument string, querys ...opts.InstrumentOpts) *InstrumentCandles {
 	q := opts.NewInstrumentQuery(querys...)
-	u, err := urlAddQuery(fmt.Sprintf(addr.InstrumentCandles, instrument), q)
+	var url string
+	if live {
+		url = fmt.Sprintf(addr.InstrumentCandles, addr.LiveHost, instrument)
+	} else if !live {
+		url = fmt.Sprintf(addr.InstrumentCandles, addr.PracticeHost, instrument)
+	}
+	u, err := urlAddQuery(url, q)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -83,9 +89,15 @@ func (in *instrument) GetCandles(instrument string, querys ...opts.InstrumentOpt
 }
 
 // GetInstrumentOrderBook: Fetch an order book for an instrument.
-func (in *instrument) GetOrderBook(instrument string, querys ...opts.InstrumentOpts) *InstrumentOrderBook {
+func (in *instrument) GetOrderBook(live bool, instrument string, querys ...opts.InstrumentOpts) *InstrumentOrderBook {
 	q := opts.NewInstrumentQuery(querys...)
-	u, err := urlAddQuery(fmt.Sprintf(addr.InstrumentOrderBook, instrument), q)
+	var url string
+	if live {
+		url = fmt.Sprintf(addr.InstrumentOrderBook, addr.LiveHost, instrument)
+	} else if !live {
+		url = fmt.Sprintf(addr.InstrumentOrderBook, addr.PracticeHost, instrument)
+	}
+	u, err := urlAddQuery(url, q)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -100,9 +112,15 @@ func (in *instrument) GetOrderBook(instrument string, querys ...opts.InstrumentO
 }
 
 // GetInstrumentPositionBook: Fetch a position book for an instrument.
-func (in *instrument) GetPositionBook(instrument string, querys ...opts.InstrumentOpts) *InstrumentPositionBook {
+func (in *instrument) GetPositionBook(live bool, instrument string, querys ...opts.InstrumentOpts) *InstrumentPositionBook {
 	q := opts.NewInstrumentQuery(querys...)
-	u, err := urlAddQuery(fmt.Sprintf(addr.InstrumentPositionBook, instrument), q)
+	var url string
+	if live {
+		url = fmt.Sprintf(addr.InstrumentPositionBook, addr.LiveHost, instrument)
+	} else if !live {
+		url = fmt.Sprintf(addr.InstrumentPositionBook, addr.PracticeHost, instrument)
+	}
+	u, err := urlAddQuery(url, q)
 	if err != nil {
 		log.Fatal(err)
 	}
