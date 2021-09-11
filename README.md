@@ -36,6 +36,11 @@
     - [ ] [PUT] PositionCloseoutByInstrument
 - Transaction
 - Pricing
+    - [x] [GET] CandlesLatest
+    - [x] [GET] PricingInformation
+    - [ ] [GET] PricingStream
+        - Need to figure out timeout issue when retrieving data
+    - [x] [GET] CandlestickInstrument
 
 #### Features
 
