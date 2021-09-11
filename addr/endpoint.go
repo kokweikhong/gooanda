@@ -19,8 +19,8 @@ const (
 	InstrumentPositionBook = restApi + "/v3/instruments/%v/positionBook"
 
 	// Order endpoints
-	Orders        = restApi + "/v3/accounts/%v/orders"
-	PendingOrders = restApi + "/v3/accounts/%v/pendingOrders"
+	OdOrderList        = restApi + "/v3/accounts/%v/orders"
+	OdPendingOrderList = restApi + "/v3/accounts/%v/pendingOrders"
 
 	// Pricing endpoints
 	PrCandleLatest      = restApi + "/v3/accounts/%v/candles/latest"
