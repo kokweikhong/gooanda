@@ -3,7 +3,6 @@ package gooanda
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/kokweikhong/gooanda/addr"
@@ -61,7 +60,7 @@ type AccountInstruments struct { // {{{
 	LastTransactionID string `json:"lastTransactionID"`
 } // }}}
 
-type accountGlobal struct {
+type accountGlobal struct { // {{{
 	NAV                         string `json:"NAV"`
 	Alias                       string `json:"alias"`
 	Balance                     string `json:"balance"`
@@ -85,7 +84,7 @@ type accountGlobal struct {
 	PendingOrderCount           int    `json:"pendingOrderCount"`
 	PL                          string `json:"pl"`
 	PositionValue               string `json:"positionValue"`
-}
+} // }}}
 
 type position struct {
 	PL           string `json:"pl"`
@@ -101,13 +100,17 @@ func NewAccountConnection(token string) *account {
 	return &account{token: token}
 }
 
-func (ac *account) connect() []byte {
+func (ac *account) connect() ([]byte, error) {
 	con := &connection{ac.endpoint, ac.method, ac.token, ac.data}
-	return con.connect()
+	resp, err := con.connect()
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
 // Get the list of tradeable instruments for the given Account. The list of tradeable instruments is dependent on the regulatory division that the Account is located in, thus should be the same for all Accounts owned by a single user.
-func (ac *account) GetAccountInstruments(live bool, accountID string, querys ...opts.AccountOpts) *AccountInstruments { // {{{
+func (ac *account) GetAccountInstruments(live bool, accountID string, querys ...opts.AccountOpts) (*AccountInstruments, error) { // {{{
 	q := opts.NewAccountQuery(querys...)
 	var url string
 	if live {
@@ -117,20 +120,23 @@ func (ac *account) GetAccountInstruments(live bool, accountID string, querys ...
 	}
 	u, err := urlAddQuery(url, q)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	ac.endpoint = u
 	ac.method = http.MethodGet
-	resp := ac.connect()
+	resp, err := ac.connect()
+	if err != nil {
+		return nil, err
+	}
 	data := &AccountInstruments{}
 	if err = json.Unmarshal(resp, &data); err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return data
+	return data, nil
 } // }}}
 
 // Get a summary for a single Account that a client has access to.
-func (ac *account) GetAccountSummary(live bool, accountID string, querys ...opts.AccountOpts) *AccountSummary { // {{{
+func (ac *account) GetAccountSummary(live bool, accountID string, querys ...opts.AccountOpts) (*AccountSummary, error) { // {{{
 	q := opts.NewAccountQuery(querys...)
 	var url string
 	if live {
@@ -140,21 +146,24 @@ func (ac *account) GetAccountSummary(live bool, accountID string, querys ...opts
 	}
 	u, err := urlAddQuery(url, q)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	ac.endpoint = u
 	ac.method = http.MethodGet
-	resp := ac.connect()
+	resp, err := ac.connect()
+	if err != nil {
+		return nil, err
+	}
 	data := &AccountSummary{}
 	err = json.Unmarshal(resp, &data)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return data
+	return data, nil
 } // }}}
 
 // Get the full details for a single Account that a client has access to. Full pending Order, open Trade and open Position representations are provided.
-func (ac *account) GetAccountById(live bool, accountID string, querys ...opts.AccountOpts) *AccountById { // {{{
+func (ac *account) GetAccountById(live bool, accountID string, querys ...opts.AccountOpts) (*AccountById, error) { // {{{
 	q := opts.NewAccountQuery(querys...)
 	var url string
 	if live {
@@ -164,20 +173,23 @@ func (ac *account) GetAccountById(live bool, accountID string, querys ...opts.Ac
 	}
 	u, err := urlAddQuery(url, q)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	ac.endpoint = u
 	ac.method = http.MethodGet
-	resp := ac.connect()
+	resp, err := ac.connect()
+	if err != nil {
+		return nil, err
+	}
 	data := &AccountById{}
 	if err = json.Unmarshal(resp, &data); err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return data
+	return data, nil
 } // }}}
 
 // Get the full details for a single Account that a client has access to. Full pending Order, open Trade and open Position representations are provided.
-func (ac *account) GetAccountList(live bool, querys ...opts.AccountOpts) *AccountList { // {{{
+func (ac *account) GetAccountList(live bool, querys ...opts.AccountOpts) (*AccountList, error) { // {{{
 	q := opts.NewAccountQuery(querys...)
 	var url string
 	if live {
@@ -187,14 +199,17 @@ func (ac *account) GetAccountList(live bool, querys ...opts.AccountOpts) *Accoun
 	}
 	u, err := urlAddQuery(url, q)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	ac.endpoint = u
 	ac.method = http.MethodGet
-	resp := ac.connect()
+	resp, err := ac.connect()
+	if err != nil {
+		return nil, err
+	}
 	var data = &AccountList{}
 	if err = json.Unmarshal(resp, &data); err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return data
+	return data, nil
 } // }}}

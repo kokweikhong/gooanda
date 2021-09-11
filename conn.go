@@ -2,8 +2,8 @@ package gooanda
 
 import (
 	"bytes"
+	"errors"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"time"
 )
@@ -15,7 +15,7 @@ type connection struct {
 	data     []byte
 }
 
-func (co *connection) connect() []byte {
+func (co *connection) connect() ([]byte, error) {
 	client := &http.Client{Timeout: 2 * time.Second}
 	var buffer bytes.Buffer
 	buffer.WriteString("Bearer ")
@@ -23,19 +23,22 @@ func (co *connection) connect() []byte {
 	auth := buffer.String()
 	req, err := http.NewRequest(co.method, co.endpoint, nil)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	req.Header.Set("User-Agent", "v20-golang/0.1")
 	req.Header.Set("Authorization", auth)
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
+	}
+	if resp.StatusCode > 200 {
+		return nil, errors.New(resp.Status)
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return body
+	return body, nil
 }

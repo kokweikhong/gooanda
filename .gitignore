@@ -1,3 +1,4 @@
 account_test.go
 order_test.go
 instrument_test.go
+pricing_test.go
