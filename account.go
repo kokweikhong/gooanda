@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
-	"github.com/kokweikhong/gooanda/addr"
-	"github.com/kokweikhong/gooanda/opts"
+	"github.com/kokweikhong/gooanda/endpoint"
 )
 
 // Accounts data structure
@@ -93,11 +93,16 @@ type position struct {
 	UnrealizedPL string `json:"unrealizedPL"`
 }
 
-type account connection
+type account struct {
+	connection
+	Query *accountFunc
+}
 
 // NewAccountConnection create a new connection for account endpoint
 func NewAccountConnection(token string) *account {
-	return &account{token: token}
+	con := &account{}
+	con.connection.token = token
+	return con
 }
 
 func (ac *account) connect() ([]byte, error) {
@@ -110,14 +115,10 @@ func (ac *account) connect() ([]byte, error) {
 }
 
 // Get the list of tradeable instruments for the given Account. The list of tradeable instruments is dependent on the regulatory division that the Account is located in, thus should be the same for all Accounts owned by a single user.
-func (ac *account) GetAccountInstruments(live bool, accountID string, querys ...opts.AccountOpts) (*AccountInstruments, error) { // {{{
-	q := opts.NewAccountQuery(querys...)
-	var url string
-	if live {
-		url = fmt.Sprintf(addr.AccountInstrument, addr.LiveHost, accountID)
-	} else if !live {
-		url = fmt.Sprintf(addr.AccountInstrument, addr.PracticeHost, accountID)
-	}
+func (ac *account) GetAccountInstruments(live bool, accountID string, querys ...accountOpts) (*AccountInstruments, error) { // {{{
+	q := newAccountQuery(querys...)
+	ep := endpoint.GetEndpoint(live, endpoint.Account.AccountInstrument)
+	url := fmt.Sprintf(ep, accountID)
 	u, err := urlAddQuery(url, q)
 	if err != nil {
 		return nil, err
@@ -136,14 +137,10 @@ func (ac *account) GetAccountInstruments(live bool, accountID string, querys ...
 } // }}}
 
 // Get a summary for a single Account that a client has access to.
-func (ac *account) GetAccountSummary(live bool, accountID string, querys ...opts.AccountOpts) (*AccountSummary, error) { // {{{
-	q := opts.NewAccountQuery(querys...)
-	var url string
-	if live {
-		url = fmt.Sprintf(addr.AccountSummary, addr.LiveHost, accountID)
-	} else if !live {
-		url = fmt.Sprintf(addr.AccountSummary, addr.PracticeHost, accountID)
-	}
+func (ac *account) GetAccountSummary(live bool, accountID string, querys ...accountOpts) (*AccountSummary, error) { // {{{
+	q := newAccountQuery(querys...)
+	ep := endpoint.GetEndpoint(live, endpoint.Account.AccountSummary)
+	url := fmt.Sprintf(ep, accountID)
 	u, err := urlAddQuery(url, q)
 	if err != nil {
 		return nil, err
@@ -163,14 +160,10 @@ func (ac *account) GetAccountSummary(live bool, accountID string, querys ...opts
 } // }}}
 
 // Get the full details for a single Account that a client has access to. Full pending Order, open Trade and open Position representations are provided.
-func (ac *account) GetAccountById(live bool, accountID string, querys ...opts.AccountOpts) (*AccountById, error) { // {{{
-	q := opts.NewAccountQuery(querys...)
-	var url string
-	if live {
-		url = fmt.Sprintf(addr.AccountsById, addr.LiveHost, accountID)
-	} else if !live {
-		url = fmt.Sprintf(addr.AccountsById, addr.PracticeHost, accountID)
-	}
+func (ac *account) GetAccountById(live bool, accountID string, querys ...accountOpts) (*AccountById, error) { // {{{
+	q := newAccountQuery(querys...)
+	ep := endpoint.GetEndpoint(live, endpoint.Account.AccountsById)
+	url := fmt.Sprintf(ep, accountID)
 	u, err := urlAddQuery(url, q)
 	if err != nil {
 		return nil, err
@@ -189,14 +182,10 @@ func (ac *account) GetAccountById(live bool, accountID string, querys ...opts.Ac
 } // }}}
 
 // Get the full details for a single Account that a client has access to. Full pending Order, open Trade and open Position representations are provided.
-func (ac *account) GetAccountList(live bool, querys ...opts.AccountOpts) (*AccountList, error) { // {{{
-	q := opts.NewAccountQuery(querys...)
-	var url string
-	if live {
-		url = fmt.Sprintf(addr.Accounts, addr.LiveHost)
-	} else if !live {
-		url = fmt.Sprintf(addr.Accounts, addr.PracticeHost)
-	}
+func (ac *account) GetAccountList(live bool, querys ...accountOpts) (*AccountList, error) { // {{{
+	q := newAccountQuery(querys...)
+	ep := endpoint.GetEndpoint(live, endpoint.Account.Accounts)
+	url := ep
 	u, err := urlAddQuery(url, q)
 	if err != nil {
 		return nil, err
@@ -212,4 +201,35 @@ func (ac *account) GetAccountList(live bool, querys ...opts.AccountOpts) (*Accou
 		return nil, err
 	}
 	return data, nil
+} // }}}
+
+type accountQuery struct { // {{{
+	SinceTransactionID string `json:"sinceTransactionID,omitempty"`
+	Instruments        string `json:"instruments,omitempty"`
+} // }}}
+
+type accountOpts func(*accountQuery)
+
+func newAccountQuery(querys ...accountOpts) *accountQuery {
+	q := &accountQuery{}
+	for _, query := range querys {
+		query(q)
+	}
+	return q
+}
+
+type accountFunc struct{}
+
+// List of instruments to query specifically.
+func (*accountFunc) WithInstruments(instruments []string) accountOpts { // {{{
+	return func(aq *accountQuery) {
+		aq.Instruments = strings.Join(instruments, ",")
+	}
+} // }}}
+
+// ID of the Transaction to get Account changes since.
+func (*accountFunc) WithSinceTransactionID(transactionID string) accountOpts { // {{{
+	return func(aq *accountQuery) {
+		aq.SinceTransactionID = transactionID
+	}
 } // }}}

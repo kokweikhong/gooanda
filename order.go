@@ -1,11 +1,14 @@
 package gooanda
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"strconv"
+	"strings"
 
-	"github.com/kokweikhong/gooanda/addr"
-	"github.com/kokweikhong/gooanda/opts"
+	"github.com/kokweikhong/gooanda/kw"
 )
 
 // type orderC struct { // {{{
@@ -52,10 +55,16 @@ import (
 // 	tradeClientExtensions string
 // } // }}}
 
-type order connection
+type order struct {
+	connection
+	Query  *orderFunc
+	Config *configFunc
+}
 
 func NewOrderConnection(token string) *order {
-	return &order{token: token}
+	conn := &order{}
+	conn.token = token
+	return conn
 }
 
 func (od *order) connect() ([]byte, error) {
@@ -67,25 +76,26 @@ func (od *order) connect() ([]byte, error) {
 	return resp, nil
 }
 
-func (od *order) GetOrderList(live bool, accountID string, querys ...opts.OrderOpts) ([]byte, error) {
-	q := opts.NewOrderQuery(querys...)
-	var url string
-	if live {
-		url = fmt.Sprintf(addr.OdOrderList, addr.LiveHost, accountID)
-	} else if !live {
-		url = fmt.Sprintf(addr.OdOrderList, addr.PracticeHost, accountID)
-	}
-	u, err := urlAddQuery(url, q)
-	if err != nil {
-		return nil, err
-	}
-	od.endpoint = u
-	od.method = http.MethodGet
-	resp, err := od.connect()
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println(string(resp))
+func (od *order) GetOrderList(live bool, accountID string, querys ...orderOpts) ([]byte, error) {
+	q := newOrderQuery(querys...)
+	fmt.Println(q)
+	// var url string
+	// if live {
+	// 	url = fmt.Sprintf(addr.OdOrderList, addr.LiveHost, accountID)
+	// } else if !live {
+	// 	url = fmt.Sprintf(addr.OdOrderList, addr.PracticeHost, accountID)
+	// }
+	// u, err := urlAddQuery(url, q)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// od.endpoint = u
+	// od.method = http.MethodGet
+	// resp, err := od.connect()
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// fmt.Println(string(resp))
 	// var data = &PricingCandleLatest{}
 	// if err = json.Unmarshal(resp, &data); err != nil {
 	// 	return nil, err
@@ -103,19 +113,114 @@ func PutOrderCancel() {}
 
 func PutOrderUpdateClientExt() {}
 
-type RequestMarketOrder struct {
-	Instrument   string  `json:"instrument"`
-	Units        float64 `json:"units"`
-	TimeInForce  string  `json:"timeInForce"`
-	PositionFill string  `json:"positionFill"`
+type configOrder struct {
+	Type             string               `json:"type"`
+	Instrument       string               `json:"instrument"`
+	Units            float64              `json:"units,string"`
+	TimeInForce      kw.TimeInForce       `json:"timeInForce,string"`
+	PriceBound       float64              `json:"priceBound,string"`
+	PositionFill     kw.OrderPositionFill `json:"positionFill,string"`
+	TakeProfitOnFill sLTpDetails          `json:"takeProfitOnFill,omitempty"`
 }
 
-type createOrder struct{}
-
-func (od *order) CreateOrder() *createOrder {
-	return &createOrder{}
+type sLTpDetails struct {
+	Price       float64        `json:"price,string"`
+	TimeInForce kw.TimeInForce `json:"timeInForce,string"`
 }
 
-func (no *createOrder) MarketOrder() {
+func (od *order) MarketOrderRequest(instrument string, units float64, opts ...configOpts) {
+	conf := newOrderConfig(opts...)
+	conf.Instrument = instrument
+	conf.Units = units
+	data, err := json.Marshal(conf)
+	if err != nil {
+		log.Fatal(err)
+	}
+	od.data = data
+	od.method = http.MethodPost
+	// od.endpoint = fmt.Sprintf(addr.LiveHost + addr.)
+}
 
+type configOpts func(*configOrder)
+
+func newOrderConfig(config ...configOpts) *configOrder {
+	c := &configOrder{}
+	for _, conf := range config {
+		conf(c)
+	}
+	return c
+}
+
+type configFunc struct{}
+
+func (*configFunc) WithTimeInForce(timeInForce kw.TimeInForce) configOpts {
+	return func(co *configOrder) {
+		co.TimeInForce = timeInForce
+	}
+}
+
+func (*configFunc) WithPriceBound(priceBound float64) configOpts {
+	return func(co *configOrder) {
+		co.PriceBound = priceBound
+	}
+}
+
+type orderQuery struct {
+	Ids        string `json:"ids,omitempty"`
+	State      string `json:"state,omitempty"`
+	Instrument string `json:"instrument,omitempty"`
+	Count      string `json:"count,omitempty"`
+	BeforeID   string `json:"beforeID,omitempty"`
+}
+
+type orderOpts func(*orderQuery)
+
+func newOrderQuery(querys ...orderOpts) *orderQuery {
+	q := &orderQuery{}
+	for _, query := range querys {
+		query(q)
+	}
+	return q
+}
+
+type orderFunc struct{}
+
+// integer	The maximum number of Orders to return [default=50, maximum=500]
+func (*orderFunc) WithCount(count int) orderOpts {
+	return func(oq *orderQuery) {
+		if count < 0 || count > 5000 {
+			oq.Count = "500"
+			return
+		} else {
+			oq.Count = strconv.Itoa(count)
+		}
+	}
+}
+
+// The state to filter the requested Orders by [default=PENDING]
+func (*orderFunc) WithState(state kw.OrderState) orderOpts {
+	return func(oq *orderQuery) {
+		oq.State = string(state)
+	}
+}
+
+// The instrument to filter the requested orders by
+func (*orderFunc) WithInstrument(instrument string) orderOpts {
+	return func(oq *orderQuery) {
+		oq.Instrument = instrument
+	}
+}
+
+// List of OrderID (csv)	List of Order IDs to retrieve
+func (*orderFunc) WithListID(ids []string) orderOpts {
+	return func(oq *orderQuery) {
+		oq.Ids = strings.Join(ids, ",")
+	}
+}
+
+// The maximum Order ID to return. If not provided the most recent Orders in the Account are returned
+func (*orderFunc) WithID(id string) orderOpts {
+	return func(oq *orderQuery) {
+		oq.BeforeID = id
+	}
 }
