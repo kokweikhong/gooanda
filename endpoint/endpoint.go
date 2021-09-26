@@ -27,10 +27,15 @@ type pricing struct {
 	PricingStream                                stream
 }
 
+type order struct {
+	Orders, PendingOrder, OrderDetails rest
+}
+
 var (
 	Account    *account
 	Instrument *instrument
 	Pricing    *pricing
+	Order      *order
 )
 
 func init() {
@@ -50,6 +55,11 @@ func init() {
 		PricingInfo:       "/v3/accounts/%v/pricing",
 		PricingStream:     "/v3/accounts/%v/pricing/stream",
 		InstrumentCandles: "/v3/accounts/%v/instruments/%v/candles",
+	}
+	Order = &order{
+		Orders:       "/v3/accounts/%v/orders",
+		PendingOrder: "/v3/accounts/%v/pendingOrders",
+		OrderDetails: "/v3/accounts/%v/orders/%v",
 	}
 }
 
