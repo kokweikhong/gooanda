@@ -31,11 +31,17 @@ type order struct {
 	Orders, PendingOrder, OrderDetails rest
 }
 
+type trade struct {
+	Trades, OpenTrades, TradeDetails         rest
+	CloseTrade, UpdateClientExt, UpdateOrder rest
+}
+
 var (
 	Account    *account
 	Instrument *instrument
 	Pricing    *pricing
 	Order      *order
+	Trade      *trade
 )
 
 func init() {
@@ -60,6 +66,14 @@ func init() {
 		Orders:       "/v3/accounts/%v/orders",
 		PendingOrder: "/v3/accounts/%v/pendingOrders",
 		OrderDetails: "/v3/accounts/%v/orders/%v",
+	}
+	Trade = &trade{
+		Trades:          "/v3/accounts/%v/trades",
+		OpenTrades:      "/v3/accounts/%v/openTrades",
+		TradeDetails:    "/v3/accounts/%v/trades/%v",
+		CloseTrade:      "/v3/accounts/%v/trades/%v/close",
+		UpdateClientExt: "/v3/accounts/%v/trades/%v/clientExtensions",
+		UpdateOrder:     "/v3/accounts/%v/trades/%v/orders",
 	}
 }
 
