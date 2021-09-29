@@ -1,7 +1,18 @@
 package kw
 
-type OrderType string
+type orderType struct {
+	MARKET, FIXED_PRICE, LIMIT, STOP, MARKET_IF_TOUCHED, TAKE_PROFIT string
+	STOP_LOSS, GUARANTEED_STOP_LOSS, TRAILING_STOP_LOSS              string
+}
 
-const (
-	Order_MARKET OrderType = "MARKET"
-)
+var ORDERTYPE = &orderType{
+	MARKET:               "MARKET",
+	FIXED_PRICE:          "FIXED_PRICE",
+	LIMIT:                "LIMIT",
+	STOP:                 "STOP",
+	MARKET_IF_TOUCHED:    "MARKET_IF_TOUCHED",
+	TAKE_PROFIT:          "TAKE_PROFIT",
+	STOP_LOSS:            "STOP_LOSS",
+	GUARANTEED_STOP_LOSS: "GUARANTEED_STOP_LOSS",
+	TRAILING_STOP_LOSS:   "TRAILING_STOP_LOSS",
+}

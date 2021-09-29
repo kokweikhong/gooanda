@@ -1,27 +1,49 @@
 package kw
 
-type Granularity string
+type granularity struct {
+	S5  string // 5 second candlesticks, minute alignment
+	S10 string // 10 second candlesticks, minute alignment"
+	S15 string // 15 second candlesticks, minute alignment"
+	S30 string // 30 second candlesticks, minute alignment"
+	M1  string // 1 minute candlesticks, minute alignment
+	M2  string // 2 minute candlesticks, hour alignment
+	M4  string // 4 minute candlesticks, hour alignment
+	M5  string // 5 minute candlesticks, hour alignment
+	M10 string // 10 minute candlesticks, hour alignment"
+	M15 string // 15 minute candlesticks, hour alignment"
+	M30 string // 30 minute candlesticks, hour alignment"
+	H1  string // 1 hour candlesticks, hour alignment
+	H2  string // 2 hour candlesticks, day alignment
+	H3  string // 3 hour candlesticks, day alignment
+	H4  string // 4 hour candlesticks, day alignment
+	H6  string // 6 hour candlesticks, day alignment
+	H8  string // 8 hour candlesticks, day alignment
+	H12 string // 12 hour candlesticks, day alignment"
+	D   string // 1 day candlesticks, day alignment
+	W   string // 1 week candlesticks, aligned to start of week
+	M   string // 1 month candlesticks, aligned to first day of the month
+}
 
-const (
-	Granularity_S5  Granularity = "S5"  // 5 second candlesticks, minute alignment
-	Granularity_S10 Granularity = "S10" // 10 second candlesticks, minute alignment
-	Granularity_S15 Granularity = "S15" // 15 second candlesticks, minute alignment
-	Granularity_S30 Granularity = "S30" // 30 second candlesticks, minute alignment
-	Granularity_M1  Granularity = "M1"  // 1 minute candlesticks, minute alignment
-	Granularity_M2  Granularity = "M2"  // 2 minute candlesticks, hour alignment
-	Granularity_M4  Granularity = "M4"  // 4 minute candlesticks, hour alignment
-	Granularity_M5  Granularity = "M5"  // 5 minute candlesticks, hour alignment
-	Granularity_M10 Granularity = "M10" // 10 minute candlesticks, hour alignment
-	Granularity_M15 Granularity = "M15" // 15 minute candlesticks, hour alignment
-	Granularity_M30 Granularity = "M30" // 30 minute candlesticks, hour alignment
-	Granularity_H1  Granularity = "H1"  // 1 hour candlesticks, hour alignment
-	Granularity_H2  Granularity = "H2"  // 2 hour candlesticks, day alignment
-	Granularity_H3  Granularity = "H3"  // 3 hour candlesticks, day alignment
-	Granularity_H4  Granularity = "H4"  // 4 hour candlesticks, day alignment
-	Granularity_H6  Granularity = "H6"  // 6 hour candlesticks, day alignment
-	Granularity_H8  Granularity = "H8"  // 8 hour candlesticks, day alignment
-	Granularity_H12 Granularity = "H12" // 12 hour candlesticks, day alignment
-	Granularity_D   Granularity = "D"   // 1 day candlesticks, day alignment
-	Granularity_W   Granularity = "W"   // 1 week candlesticks, aligned to start of week
-	Granularity_M   Granularity = "M"   // 1 month candlesticks, aligned to first day of the month
-)
+var GRANULARITY = &granularity{
+	S5:  "S5",
+	S10: "S10",
+	S15: "S15",
+	S30: "S30",
+	M1:  "M1",
+	M2:  "M2",
+	M4:  "M4",
+	M5:  "M5",
+	M10: "M10",
+	M15: "M15",
+	M30: "M30",
+	H1:  "H1",
+	H2:  "H2",
+	H3:  "H3",
+	H4:  "H4",
+	H6:  "H6",
+	H8:  "H8",
+	H12: "H12",
+	D:   "D",
+	W:   "W",
+	M:   "M",
+}

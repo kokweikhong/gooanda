@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/kokweikhong/gooanda/endpoint"
-	"github.com/kokweikhong/gooanda/kw"
 )
 
 // InstrumentCandles data structure
@@ -178,9 +177,9 @@ func (*instrumentFunc) WithTime(setTime time.Time) instrumentOpts {
 }
 
 // The day of the week used for granularities that have weekly alignment. [default=Friday]
-func (*instrumentFunc) WithWeeklyAlignment(day kw.WeeklyAlignment) instrumentOpts {
+func (*instrumentFunc) WithWeeklyAlignment(weeklyAlignment string) instrumentOpts {
 	return func(iq *instrumentQuery) {
-		iq.WeeklyAlignment = string(day)
+		iq.WeeklyAlignment = weeklyAlignment
 	}
 }
 
@@ -254,7 +253,7 @@ func (*instrumentFunc) WithCount(count int) instrumentOpts {
 }
 
 // The granularity of the candlesticks to fetch [default=S5]
-func (iq *instrumentFunc) WithGranularity(granularity kw.Granularity) instrumentOpts {
+func (iq *instrumentFunc) WithGranularity(granularity string) instrumentOpts {
 	return func(iq *instrumentQuery) {
 		iq.Granularity = string(granularity)
 	}

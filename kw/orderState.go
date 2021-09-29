@@ -1,11 +1,16 @@
 package kw
 
-type OrderState string
+type orderState struct {
+	PENDING   string // Orders that are currently pending execution
+	FILLED    string // The Orders that have been filled
+	TRIGGERED string // The Orders that have been triggered
+	CANCELLED string // The Orders that have been cancelled
+	ALL       string // The Orders that are in any of the possible states listed above
+}
 
-const (
-	PENDING   OrderState = "PENDING"   // Orders that are currently pending execution
-	FILLED    OrderState = "FILLED"    // The Orders that have been filled
-	TRIGGERED OrderState = "TRIGGERED" // The Orders that have been triggered
-	CANCELLED OrderState = "CANCELLED" // The Orders that have been cancelled
-	ALL                                // The Orders that are in any of the possible states listed above
-)
+var OrderState = &orderState{
+	PENDING:   "PENDING",
+	FILLED:    "FILLED",
+	TRIGGERED: "TRIGGERED",
+	CANCELLED: "CANCELLED",
+}

@@ -1,14 +1,21 @@
 package kw
 
-type PriceComponent string
+type priceComponent struct {
+	M   string // mid point candles
+	B   string // bid candles
+	A   string // ask candles
+	AB  string // ask and bid candles
+	AM  string // ask and mid candles
+	BM  string // bid and mid candles
+	ALL string // ask, bid and mid candles
+}
 
-const (
-	ComPrice_M  PriceComponent = "M"  // mid point candles
-	ComPrice_B  PriceComponent = "B"  // bid candles
-	ComPrice_A  PriceComponent = "A"  // ask candles
-	ComPrice_AM PriceComponent = "AM" // ask/mid point candles
-	ComPrice_BM PriceComponent = "BM" // bid/mid point candles
-	ComPrice_AB PriceComponent = "AB" // ask/bid candles
-
-	ComPrice_BAM PriceComponent = "BAM" // ask/mid/bid candles
-)
+var PRICECOMPONENT = &priceComponent{
+	M:   "M",
+	B:   "B",
+	A:   "A",
+	AB:  "AB",
+	AM:  "AM",
+	BM:  "BM",
+	ALL: "ABM",
+}
