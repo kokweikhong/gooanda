@@ -8,57 +8,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/kokweikhong/gooanda/endpoint"
 	"github.com/kokweikhong/gooanda/kw"
 )
 
-// type orderC struct { // {{{
-// 	OrderType string `json:"type"`
-// 	// The Market Order’s Instrument.
-// 	Instrument string `json:"instrument"`
-// 	// The quantity requested to be filled by the Market Order.
-// 	// A positive number of units results in a long Order
-// 	// Negative number of units results in a short Order.
-// 	Units string `json:"units"`
-// 	// The time-in-force requested for the Market Order. Restricted to FOK or IOC for a MarketOrder.
-// 	TimeInForce string `json:"timeInForce"`
-// 	// The worst price that the client is willing to have the Market Order filled at.
-// 	PriceBound string `json:"priceBound,omitempty"`
-// 	// Specification of how Positions in the Account are modified when the Order is filled.
-// 	positionFill string
-// 	// The client extensions to add to the Order. Do not set, modify, or delete clientExtensions if your account is associated with MT4.
-// 	clientExtensions string
-// 	// TakeProfitDetails specifies the details of a Take Profit Order to be
-// 	// created on behalf of a client. This may happen when an Order is filled
-// 	// that opens a Trade requiring a Take Profit, or when a Trade’s dependent
-// 	// Take Profit Order is modified directly through the Trade.
-// 	takeProfitOnFill string
-// 	// StopLossDetails specifies the details of a Stop Loss Order to be created
-// 	// on behalf of a client. This may happen when an Order is filled that opens
-// 	// a Trade requiring a Stop Loss, or when a Trade’s dependent Stop Loss
-// 	// Order is modified directly through the Trade.
-// 	stopLossOnFill string
-// 	// GuaranteedStopLossDetails specifies the details of a Guaranteed Stop Loss
-// 	// Order to be created on behalf of a client. This may happen when an Order
-// 	// is filled that opens a Trade requiring a Guaranteed Stop Loss, or when a
-// 	// Trade’s dependent Guaranteed Stop Loss Order is modified directly through
-// 	// the Trade.
-// 	guaranteedStopLossOnFill string
-// 	// TrailingStopLossDetails specifies the details of a Trailing Stop Loss
-// 	// Order to be created on behalf of a client. This may happen when an Order
-// 	// is filled that opens a Trade requiring a Trailing Stop Loss, or when a
-// 	// Trade’s dependent Trailing Stop Loss Order is modified directly through
-// 	// the Trade.
-// 	trailingStopLossOnFill string
-// 	// Client Extensions to add to the Trade created when the Order is filled
-// 	// (if such a Trade is created). Do not set, modify, or delete
-// 	// tradeClientExtensions if your account is associated with MT4.
-// 	tradeClientExtensions string
-// } // }}}
-
 type order struct {
 	connection
-	Query  *orderFunc
-	Config *configFunc
+	Config *orderConfigFunc
+	Query  *orderQueryFunc
 }
 
 func NewOrderConnection(token string) *order {
@@ -114,54 +71,243 @@ func PutOrderCancel() {}
 func PutOrderUpdateClientExt() {}
 
 type configOrder struct {
-	Type             string               `json:"type"`
-	Instrument       string               `json:"instrument"`
-	Units            float64              `json:"units,string"`
-	TimeInForce      kw.TimeInForce       `json:"timeInForce,string"`
-	PriceBound       float64              `json:"priceBound,string"`
-	PositionFill     kw.OrderPositionFill `json:"positionFill,string"`
-	TakeProfitOnFill sLTpDetails          `json:"takeProfitOnFill,omitempty"`
+	Order struct {
+		Type             string      `json:"type"`
+		Instrument       string      `json:"instrument,omitempty"`
+		Units            float64     `json:"units,string"`
+		TimeInForce      string      `json:"timeInForce"`
+		Price            float64     `json:"price,omitempty,string"`
+		PriceBound       float64     `json:"priceBound,omitempty,string"`
+		PositionFill     string      `json:"positionFill,omitempty"`
+		TakeProfitOnFill *detailSLTP `json:"takeProfitOnFill,omitempty"`
+		StopLossOnFill   *detailSLTP `json:"stopLossOnFill,omitempty"`
+		TriggerCondition string      `json:"triggerCondition,omitempty"`
+		TradeID          string      `json:"tradeID,omitempty,string"`
+		ClientTradeID    string      `json:"clientTradeID,omitempty,string"`
+	} `json:"order"`
 }
 
-type sLTpDetails struct {
-	Price       float64        `json:"price,string"`
-	TimeInForce kw.TimeInForce `json:"timeInForce,string"`
+type detailSLTP struct {
+	Price       float64 `json:"price,string"`
+	TimeInForce string  `json:"timeInForce"`
+	GtdTime     string  `json:"gtdTime"`
 }
 
-func (od *order) MarketOrderRequest(instrument string, units float64, opts ...configOpts) {
-	conf := newOrderConfig(opts...)
-	conf.Instrument = instrument
-	conf.Units = units
-	data, err := json.Marshal(conf)
+// type orderResponse struct {
+//     OrderCreateTransaction *transaction `json:"orderCreateTransaction,omitempty"`
+//     orderFillTransaction : (OrderFillTransaction),
+//     orderCancelTransaction : (OrderCancelTransaction),
+//     orderReissueTransaction : (Transaction),
+//     orderReissueRejectTransaction : (Transaction),
+//     relatedTransactionIDs : (Array[TransactionID]),
+//     lastTransactionID : (TransactionID)
+// }
+
+// type transaction struct {
+
+// }
+// MarketOrderRequest specifies the parameters that may be set when creating a Market Order.
+func (od *order) MarketOrderRequest(live bool, accountID, instrument string, units float64, opts ...configOpts) {
+	conf := &configOrder{}
+	conf.Order.Type = kw.ORDERTYPE.MARKET
+	conf.defaultConfig()
+	conf.extendOrderConfig(opts...)
+	conf.extendOrderConfig(
+		od.Config.WithInstrument(instrument),
+		od.Config.WithUnits(units))
+	fmt.Println(conf.Order.Instrument)
+	data, err := convertConfig(conf)
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Printf("order created with below configuration:\n%v\n", string(data))
 	od.data = data
 	od.method = http.MethodPost
-	// od.endpoint = fmt.Sprintf(addr.LiveHost + addr.)
+	ep := endpoint.GetEndpoint(live, endpoint.Order.Orders)
+	od.endpoint = fmt.Sprintf(ep, accountID)
+	resp, err := od.connect()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(resp))
+}
+
+// LimitOrderRequest specifies the parameters that may be set when creating a Limit Order.
+func (od *order) LimitOrderRequest(live bool, accountID, instrument string, price, units float64, opts ...configOpts) {
+	conf := &configOrder{}
+	conf.Order.Type = kw.ORDERTYPE.LIMIT
+	conf.defaultConfig()
+	conf.extendOrderConfig(opts...)
+	conf.extendOrderConfig(
+		od.Config.WithInstrument(instrument),
+		od.Config.WithUnits(units),
+		od.Config.WithPrice(price))
+	data, err := convertConfig(conf)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("order created with below configuration:\n%v\n", string(data))
+	od.data = data
+	od.method = http.MethodPost
+	ep := endpoint.GetEndpoint(live, endpoint.Order.Orders)
+	od.endpoint = fmt.Sprintf(ep, accountID)
+	resp, err := od.connect()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(resp))
+}
+
+// StopOrderRequest specifies the parameters that may be set when creating a Stop Order.
+func (od *order) StopOrderRequest(live bool, accountID, instrument string, price, units float64, opts ...configOpts) {
+	conf := &configOrder{}
+	conf.Order.Type = kw.ORDERTYPE.STOP
+	conf.defaultConfig()
+	conf.extendOrderConfig(opts...)
+	conf.extendOrderConfig(
+		od.Config.WithInstrument(instrument),
+		od.Config.WithUnits(units),
+		od.Config.WithPrice(price))
+	data, err := convertConfig(conf)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("order created with below configuration:\n%v\n", string(data))
+	od.data = data
+	od.method = http.MethodPost
+	ep := endpoint.GetEndpoint(live, endpoint.Order.Orders)
+	od.endpoint = fmt.Sprintf(ep, accountID)
+	resp, err := od.connect()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(resp))
+}
+
+// MarketIfTouchedOrderRequest specifies the parameters that may be set when creating a Market-if-Touched Order.
+func (od *order) MarketIfTouchedOrderRequest(live bool, accountID, instrument string, price, units float64, opts ...configOpts) {
+	conf := &configOrder{}
+	conf.Order.Type = kw.ORDERTYPE.MARKET_IF_TOUCHED
+	conf.defaultConfig()
+	conf.extendOrderConfig(opts...)
+	conf.extendOrderConfig(
+		od.Config.WithInstrument(instrument),
+		od.Config.WithUnits(units),
+		od.Config.WithPrice(price))
+	data, err := convertConfig(conf)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("order created with below configuration:\n%v\n", string(data))
+	od.data = data
+	od.method = http.MethodPost
+	ep := endpoint.GetEndpoint(live, endpoint.Order.Orders)
+	od.endpoint = fmt.Sprintf(ep, accountID)
+	resp, err := od.connect()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(resp))
+}
+
+// TakeProfitOrderRequest specifies the parameters that may be set when creating a Take Profit Order.
+func (od *order) TakeProfitOrderRequest() {}
+
+// StopLossOrderRequest specifies the parameters that may be set when creating a Stop Loss Order. Only one of the price and distance fields may be specified.
+func (od *order) StopLossOrderRequest() {}
+
+// GuaranteedStopLossOrderRequest specifies the parameters that may be set when creating a Guaranteed Stop Loss Order. Only one of the price and distance fields may be specified.
+func (od *order) GuaranteedStopLossOrderRequest() {}
+
+// TrailingStopLossOrderRequest specifies the parameters that may be set when creating a Trailing Stop Loss Order.
+func (od *order) TrailingStopLossOrderRequest() {}
+
+// convertConfig is to remove fields which not required based on what order request.
+func convertConfig(config *configOrder) ([]byte, error) {
+	switch strings.ToLower(config.Order.Type) {
+	case kw.ORDERTYPE.MARKET:
+		config.Order.TriggerCondition = ""
+	case kw.ORDERTYPE.LIMIT:
+		config.Order.PriceBound = 0
+	}
+	fmt.Println(config.Order.Type)
+	data, err := json.Marshal(config)
+	if err != nil {
+		return data, fmt.Errorf("failed to marshal config to json, %v", err)
+	}
+	return data, nil
 }
 
 type configOpts func(*configOrder)
 
-func newOrderConfig(config ...configOpts) *configOrder {
-	c := &configOrder{}
+// extendOrderConfig is to add fields to current configuration after default config called.
+func (cf *configOrder) extendOrderConfig(config ...configOpts) {
 	for _, conf := range config {
-		conf(c)
-	}
-	return c
-}
-
-type configFunc struct{}
-
-func (*configFunc) WithTimeInForce(timeInForce kw.TimeInForce) configOpts {
-	return func(co *configOrder) {
-		co.TimeInForce = timeInForce
+		conf(cf)
 	}
 }
 
-func (*configFunc) WithPriceBound(priceBound float64) configOpts {
+// defaultConfig is create configuration based on what order request.
+func (cf *configOrder) defaultConfig() {
+	switch cf.Order.Type {
+	case kw.ORDERTYPE.MARKET: // Market order request
+		cf.Order.TimeInForce = kw.TIMEINFORCE.FOK
+		cf.Order.PositionFill = kw.POSITIONFILL.DEFAULT
+	case kw.ORDERTYPE.LIMIT, kw.ORDERTYPE.STOP,
+		kw.ORDERTYPE.MARKET_IF_TOUCHED:
+		cf.Order.TimeInForce = kw.TIMEINFORCE.GTC
+		cf.Order.PositionFill = kw.POSITIONFILL.DEFAULT
+		cf.Order.TriggerCondition = kw.TRIGGERCONDITION.DEFAULT
+	}
+}
+
+type orderConfigFunc struct{}
+
+func (*orderConfigFunc) WithPrice(price float64) configOpts {
+	return func(co *configOrder) { co.Order.Price = price }
+}
+
+func (*orderConfigFunc) WithUnits(units float64) configOpts {
+	return func(co *configOrder) { co.Order.Units = units }
+}
+
+func (*orderConfigFunc) WithTriggerCondition(triggerCondition string) configOpts {
+	return func(co *configOrder) { co.Order.TriggerCondition = triggerCondition }
+}
+
+func (*orderConfigFunc) WithStopLossOnFill(gtdTime, timeInForce string, price float64) configOpts {
 	return func(co *configOrder) {
-		co.PriceBound = priceBound
+		co.Order.StopLossOnFill.GtdTime = gtdTime
+		co.Order.StopLossOnFill.TimeInForce = timeInForce
+		co.Order.StopLossOnFill.Price = price
+	}
+}
+
+func (*orderConfigFunc) WithTakeProfitOnFill(gtdTime, timeInForce string, price float64) configOpts {
+	return func(co *configOrder) {
+		co.Order.TakeProfitOnFill.GtdTime = gtdTime
+		co.Order.TakeProfitOnFill.TimeInForce = timeInForce
+		co.Order.TakeProfitOnFill.Price = price
+	}
+}
+
+func (*orderConfigFunc) WithPositionFill(positionFill string) configOpts {
+	return func(co *configOrder) { co.Order.PositionFill = positionFill }
+}
+
+func (*orderConfigFunc) WithInstrument(instrument string) configOpts {
+	return func(co *configOrder) { co.Order.Instrument = instrument }
+}
+
+func (*orderConfigFunc) WithTimeInForce(timeInForce string) configOpts {
+	return func(co *configOrder) {
+		co.Order.TimeInForce = timeInForce
+	}
+}
+
+func (*orderConfigFunc) WithPriceBound(priceBound float64) configOpts {
+	return func(co *configOrder) {
+		co.Order.PriceBound = priceBound
 	}
 }
 
@@ -183,10 +329,10 @@ func newOrderQuery(querys ...orderOpts) *orderQuery {
 	return q
 }
 
-type orderFunc struct{}
+type orderQueryFunc struct{}
 
-// integer	The maximum number of Orders to return [default=50, maximum=500]
-func (*orderFunc) WithCount(count int) orderOpts {
+// WithCount is the maximum number of Orders to return [default=50, maximum=500]
+func (*orderQueryFunc) WithCount(count int) orderOpts {
 	return func(oq *orderQuery) {
 		if count < 0 || count > 5000 {
 			oq.Count = "500"
@@ -197,29 +343,29 @@ func (*orderFunc) WithCount(count int) orderOpts {
 	}
 }
 
-// The state to filter the requested Orders by [default=PENDING]
-func (*orderFunc) WithState(state kw.OrderState) orderOpts {
+// WithState is the state to filter the requested Orders by.
+func (*orderQueryFunc) WithState(orderState string) orderOpts {
 	return func(oq *orderQuery) {
-		oq.State = string(state)
+		oq.State = orderState
 	}
 }
 
-// The instrument to filter the requested orders by
-func (*orderFunc) WithInstrument(instrument string) orderOpts {
+// WithIstrument is the instrument to filter the requested orders by.
+func (*orderQueryFunc) WithInstrument(instrument string) orderOpts {
 	return func(oq *orderQuery) {
 		oq.Instrument = instrument
 	}
 }
 
-// List of OrderID (csv)	List of Order IDs to retrieve
-func (*orderFunc) WithListID(ids []string) orderOpts {
+// WithListId is List of OrderID (csv), List of Order IDs to retrieve
+func (*orderQueryFunc) WithListID(ids []string) orderOpts {
 	return func(oq *orderQuery) {
 		oq.Ids = strings.Join(ids, ",")
 	}
 }
 
-// The maximum Order ID to return. If not provided the most recent Orders in the Account are returned
-func (*orderFunc) WithID(id string) orderOpts {
+// WithID is the maximum Order ID to return. If not provided the most recent Orders in the Account are returned
+func (*orderQueryFunc) WithID(id string) orderOpts {
 	return func(oq *orderQuery) {
 		oq.BeforeID = id
 	}
