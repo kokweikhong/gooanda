@@ -16,6 +16,15 @@
     - [x] [GET] InstrumentPositionBook
 - Order
     - [ ] [POST] OrderCreate
+        - Need to create data struct, now only json response.
+        - [ ] MarketOrderRequest
+        - [ ] LimitOrderRequest
+        - [ ] StopOrderRequest
+        - [ ] MarketIfTouchedOrderRequest
+        - [ ] StopLossOrderRequest
+        - [ ] TakeProfitOrderRequest
+        - [ ] GuaranteedStopLossOrderRequest
+        - [ ] TrailingStopLossOrderRequest
     - [ ] [GET] OrderList
     - [ ] [GET] OrderPendingList
     - [ ] [GET] OrderDetails
