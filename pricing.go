@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/kokweikhong/gooanda/endpoint"
-	"github.com/kokweikhong/gooanda/kw"
 )
 
 // PricingCandleLatest data structure
@@ -96,7 +95,7 @@ func (pr *pricing) connect() ([]byte, error) {
 }
 
 // GetCandlesLatest get dancing bears and most recently completed candles within an Account for specified combinations of instrument, granularity, and price component.
-func (pr *pricing) GetCandlesLatest(live bool, accountID string, instruments []string, granularity kw.Granularity, priceComponent kw.PriceComponent, querys ...pricingOpts) (*PricingCandleLatest, error) { // {{{
+func (pr *pricing) GetCandlesLatest(live bool, accountID string, instruments []string, granularity string, priceComponent string, querys ...pricingOpts) (*PricingCandleLatest, error) { // {{{
 	querys = append(querys, pr.Query.WithCandleSpecifications(instruments, granularity, priceComponent))
 	q := newPricingQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Pricing.CandleLatest)
@@ -219,7 +218,7 @@ func newPricingQuery(querys ...pricingOpts) *pricingQuery {
 
 type pricingFunc struct{}
 
-func (*pricingFunc) WithCandleSpecifications(instruments []string, granularity kw.Granularity, priceComponent kw.PriceComponent) pricingOpts {
+func (*pricingFunc) WithCandleSpecifications(instruments []string, granularity, priceComponent string) pricingOpts {
 	return func(pq *pricingQuery) {
 		for k := range instruments {
 			instruments[k] = instruments[k] + ":" + string(granularity) + ":" + string(priceComponent)
@@ -276,9 +275,9 @@ func (*pricingFunc) WithInstruments(instruments []string) pricingOpts {
 }
 
 // WithPrice: The Price component(s) to get candlestick data for. [default=M]
-func (*pricingFunc) WithPrice(component kw.PriceComponent) pricingOpts {
+func (*pricingFunc) WithPrice(priceComponent string) pricingOpts {
 	return func(pq *pricingQuery) {
-		pq.Price = string(component)
+		pq.Price = priceComponent
 	}
 }
 
@@ -299,8 +298,8 @@ func (*pricingFunc) WithoutIncludeFirst() pricingOpts {
 }
 
 // WithGranularity:  granularity of the candlesticks to fetch [default=S5]
-func (*pricingFunc) WithGranularity(granularity kw.Granularity) pricingOpts {
-	return func(pq *pricingQuery) { pq.Granularity = string(granularity) }
+func (*pricingFunc) WithGranularity(granularity string) pricingOpts {
+	return func(pq *pricingQuery) { pq.Granularity = granularity }
 }
 
 // WithoutSnapshot: that enables/disables the sending of a pricing snapshot when initially connecting to the stream. [default=True]
@@ -314,8 +313,8 @@ func (*pricingFunc) WithIncludeHomeConversions() pricingOpts {
 }
 
 // WithWeeklyAlignment:  day of the week used for granularities that have weekly alignment. [default=Friday]
-func (*pricingFunc) WithWeeklyAlignment(day kw.WeeklyAlignment) pricingOpts {
-	return func(pq *pricingQuery) { pq.WeeklyAlignment = string(day) }
+func (*pricingFunc) WithWeeklyAlignment(weeklyAlignment string) pricingOpts {
+	return func(pq *pricingQuery) { pq.WeeklyAlignment = weeklyAlignment }
 }
 
 // WithAlignmentTimezone:  timezone to use for the dailyAlignment parameter. Candlesticks with daily alignment will be aligned to the dailyAlignment hour within the alignmentTimezone. Note that the returned times will still be represented in UTC. [default=America/New_York]
