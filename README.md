@@ -17,10 +17,10 @@
 - Order
     - [ ] [POST] OrderCreate
         - Need to create data struct, now only json response.
-        - [ ] MarketOrderRequest
-        - [ ] LimitOrderRequest
-        - [ ] StopOrderRequest
-        - [ ] MarketIfTouchedOrderRequest
+        - [X] MarketOrderRequest
+        - [X] LimitOrderRequest
+        - [X] StopOrderRequest
+        - [X] MarketIfTouchedOrderRequest
         - [ ] StopLossOrderRequest
         - [ ] TakeProfitOrderRequest
         - [ ] GuaranteedStopLossOrderRequest
