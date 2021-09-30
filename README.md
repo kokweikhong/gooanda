@@ -26,23 +26,25 @@
         - [X] GuaranteedStopLossOrderRequest
         - [X] TrailingStopLossOrderRequest
     - [X] [GET] OrderList
-    - [ ] [GET] OrderPendingList
-    - [ ] [GET] OrderDetails
-    - [ ] [PUT] OrderReplace
-    - [ ] [PUT] OrderCancel
+    - [X] [GET] OrderPendingList
+    - [X] [GET] OrderDetails
+    - [X] [PUT] OrderReplace
+    - [X] [PUT] OrderCancel
     - [ ] [PUT] OrderUpdateClientExt
 - Trade
-    - [ ] [GET] TradeList
-    - [ ] [GET] TradesOpen
-    - [ ] [GET] TradeDetails
-    - [ ] [PUT] TradeClose
+    - [ ]Need to create data struct, now only json response.
+    - [X] [GET] TradeList
+    - [X] [GET] TradesOpen
+    - [X] [GET] TradeDetails
+    - [X] [PUT] TradeClose
     - [ ] [PUT] TradeUpdateClientExt
-    - [ ] [PUT] TradeUpdateTPSL
+    - [X] [PUT] TradeUpdateTPSL
 - Position
-    - [ ] [GET] PositionList
-    - [ ] [GET] PositionOpenList
-    - [ ] [GET] PositionByAccountID
-    - [ ] [PUT] PositionCloseoutByInstrument
+    - [ ]Need to create data struct, now only json response.
+    - [X] [GET] PositionList
+    - [X] [GET] PositionOpenList
+    - [X] [GET] PositionByAccountID
+    - [X] [PUT] PositionCloseoutByInstrument
 - Transaction
 - Pricing
     - [x] [GET] CandlesLatest
