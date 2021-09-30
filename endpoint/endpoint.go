@@ -33,7 +33,7 @@ type order struct {
 
 type trade struct {
 	Trades, OpenTrades, TradeDetails         rest
-	CloseTrade, UpdateClientExt, UpdateOrder rest
+	CloseTrade, UpdateClientExt, UpdateTrade rest
 }
 
 var (
@@ -73,7 +73,7 @@ func init() {
 		TradeDetails:    "/v3/accounts/%v/trades/%v",
 		CloseTrade:      "/v3/accounts/%v/trades/%v/close",
 		UpdateClientExt: "/v3/accounts/%v/trades/%v/clientExtensions",
-		UpdateOrder:     "/v3/accounts/%v/trades/%v/orders",
+		UpdateTrade:     "/v3/accounts/%v/trades/%v/orders",
 	}
 }
 
