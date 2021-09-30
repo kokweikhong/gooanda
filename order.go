@@ -300,54 +300,54 @@ func (cf *configOrder) defaultConfig() {
 }
 
 // convertConfig is to remove fields which not required based on what order request.
-func convertConfig(config *configOrder) ([]byte, error) {
-	switch strings.ToLower(config.Order.Type) {
+func (cf *configOrder) convertConfig() ([]byte, error) {
+	switch cf.Order.Type {
 	case kw.ORDERTYPE.MARKET:
-		config.Order.Price = 0
-		config.Order.TriggerCondition = ""
-		config.Order.ClientTradeID = ""
-		config.Order.TradeID = ""
-		config.Order.Distance = 0
+		cf.Order.Price = 0
+		cf.Order.TriggerCondition = ""
+		cf.Order.ClientTradeID = ""
+		cf.Order.TradeID = ""
+		cf.Order.Distance = 0
 	case kw.ORDERTYPE.LIMIT:
-		config.Order.PriceBound = 0
-		config.Order.ClientTradeID = ""
-		config.Order.TradeID = ""
-		config.Order.Distance = 0
+		cf.Order.PriceBound = 0
+		cf.Order.ClientTradeID = ""
+		cf.Order.TradeID = ""
+		cf.Order.Distance = 0
 	case kw.ORDERTYPE.MARKET_IF_TOUCHED, kw.ORDERTYPE.STOP:
-		config.Order.ClientTradeID = ""
-		config.Order.TradeID = ""
-		config.Order.Distance = 0
+		cf.Order.ClientTradeID = ""
+		cf.Order.TradeID = ""
+		cf.Order.Distance = 0
 	case kw.ORDERTYPE.TAKE_PROFIT:
-		config.Order.Instrument = ""
-		config.Order.Units = 0
-		config.Order.PriceBound = 0
-		config.Order.PositionFill = ""
-		config.Order.TakeProfitOnFill = nil
-		config.Order.StopLossOnFill = nil
-		config.Order.Distance = 0
-		config.Order.GuaranteedStopLossOnFill = nil
-		config.Order.TrailingStopLossOnFill = nil
+		cf.Order.Instrument = ""
+		cf.Order.Units = 0
+		cf.Order.PriceBound = 0
+		cf.Order.PositionFill = ""
+		cf.Order.TakeProfitOnFill = nil
+		cf.Order.StopLossOnFill = nil
+		cf.Order.Distance = 0
+		cf.Order.GuaranteedStopLossOnFill = nil
+		cf.Order.TrailingStopLossOnFill = nil
 	case kw.ORDERTYPE.STOP_LOSS:
-		config.Order.Instrument = ""
-		config.Order.Units = 0
-		config.Order.PriceBound = 0
-		config.Order.PositionFill = ""
-		config.Order.TakeProfitOnFill = nil
-		config.Order.StopLossOnFill = nil
-		config.Order.GuaranteedStopLossOnFill = nil
-		config.Order.TrailingStopLossOnFill = nil
+		cf.Order.Instrument = ""
+		cf.Order.Units = 0
+		cf.Order.PriceBound = 0
+		cf.Order.PositionFill = ""
+		cf.Order.TakeProfitOnFill = nil
+		cf.Order.StopLossOnFill = nil
+		cf.Order.GuaranteedStopLossOnFill = nil
+		cf.Order.TrailingStopLossOnFill = nil
 	case kw.ORDERTYPE.GUARANTEED_STOP_LOSS, kw.ORDERTYPE.TRAILING_STOP_LOSS:
-		config.Order.Instrument = ""
-		config.Order.Units = 0
-		config.Order.PriceBound = 0
-		config.Order.PositionFill = ""
-		config.Order.TakeProfitOnFill = nil
-		config.Order.StopLossOnFill = nil
-		config.Order.GuaranteedStopLossOnFill = nil
-		config.Order.TrailingStopLossOnFill = nil
+		cf.Order.Instrument = ""
+		cf.Order.Units = 0
+		cf.Order.PriceBound = 0
+		cf.Order.PositionFill = ""
+		cf.Order.TakeProfitOnFill = nil
+		cf.Order.StopLossOnFill = nil
+		cf.Order.GuaranteedStopLossOnFill = nil
+		cf.Order.TrailingStopLossOnFill = nil
 	}
-	fmt.Println(config.Order.Type)
-	data, err := json.Marshal(config)
+	fmt.Println(cf.Order.Type)
+	data, err := json.Marshal(cf)
 	if err != nil {
 		return data, fmt.Errorf("failed to marshal config to json, %v", err)
 	}
@@ -393,7 +393,7 @@ func (od *order) MarketOrderRequest(live bool, accountID, instrument string, uni
 		od.Config.WithInstrument(instrument),
 		od.Config.WithUnits(units))
 	fmt.Println(conf.Order.Instrument)
-	data, err := convertConfig(conf)
+	data, err := conf.convertConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -419,7 +419,7 @@ func (od *order) LimitOrderRequest(live bool, accountID, instrument string, pric
 		od.Config.WithInstrument(instrument),
 		od.Config.WithUnits(units),
 		od.Config.WithPrice(price))
-	data, err := convertConfig(conf)
+	data, err := conf.convertConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -445,7 +445,7 @@ func (od *order) StopOrderRequest(live bool, accountID, instrument string, price
 		od.Config.WithInstrument(instrument),
 		od.Config.WithUnits(units),
 		od.Config.WithPrice(price))
-	data, err := convertConfig(conf)
+	data, err := conf.convertConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -471,7 +471,7 @@ func (od *order) MarketIfTouchedOrderRequest(live bool, accountID, instrument st
 		od.Config.WithInstrument(instrument),
 		od.Config.WithUnits(units),
 		od.Config.WithPrice(price))
-	data, err := convertConfig(conf)
+	data, err := conf.convertConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -496,7 +496,7 @@ func (od *order) TakeProfitOrderRequest(live bool, accountID, tradeID string, pr
 	conf.extendOrderConfig(
 		od.Config.WithTradeID(tradeID),
 		od.Config.WithPrice(price))
-	data, err := convertConfig(conf)
+	data, err := conf.convertConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -521,7 +521,7 @@ func (od *order) StopLossOrderRequest(live bool, accountID, tradeID string, pric
 	conf.extendOrderConfig(
 		od.Config.WithTradeID(tradeID),
 		od.Config.WithPrice(price))
-	data, err := convertConfig(conf)
+	data, err := conf.convertConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -546,7 +546,7 @@ func (od *order) GuaranteedStopLossOrderRequest(live bool, accountID, tradeID st
 	conf.extendOrderConfig(
 		od.Config.WithTradeID(tradeID),
 		od.Config.WithPrice(price))
-	data, err := convertConfig(conf)
+	data, err := conf.convertConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -571,7 +571,7 @@ func (od *order) TrailingStopLossOrderRequest(live bool, accountID, tradeID stri
 	conf.extendOrderConfig(
 		od.Config.WithTradeID(tradeID),
 		od.Config.WithPrice(distance))
-	data, err := convertConfig(conf)
+	data, err := conf.convertConfig()
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -33,16 +33,11 @@ func (co *connection) connect() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	// if resp.StatusCode > 200 {
-	//	return nil, errors.New(resp.Status)
-	// }
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
-	if resp.StatusCode > 200 {
-		return nil, fmt.Errorf("%v, %v", resp.Status, string(body))
-	}
+	fmt.Println(string(body))
 	return body, nil
 }

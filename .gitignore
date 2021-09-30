@@ -2,3 +2,5 @@ account_test.go
 order_test.go
 instrument_test.go
 pricing_test.go
+trade_test.go
+position_test.go

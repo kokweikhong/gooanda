@@ -10,7 +10,7 @@ import (
 )
 
 // Accounts data structure
-type AccountList struct { // {{{
+type accountList struct { // {{{
 	Accounts []struct {
 		ID           string   `json:"id"`
 		Mt4AccountID int      `json:"mt4AccountID,omitempty"`
@@ -19,7 +19,7 @@ type AccountList struct { // {{{
 } // }}}
 
 // AccountById data structure
-type AccountById struct { // {{{
+type accountById struct { // {{{
 	Account struct {
 		accountGlobal
 		Postions []struct {
@@ -32,7 +32,7 @@ type AccountById struct { // {{{
 } // }}}
 
 // AccountSummary data structure
-type AccountSummary struct { // {{{
+type accountSummary struct { // {{{
 	Account struct {
 		accountGlobal
 		ResettablePL    string `json:"resettablePL"`
@@ -42,7 +42,7 @@ type AccountSummary struct { // {{{
 } // }}}
 
 // AccountInstruments data structure
-type AccountInstruments struct { // {{{
+type accountInstruments struct { // {{{
 	Intruments []struct {
 		DisplayName                 string `json:"displayName"`
 		DisplayPrecision            int    `json:"displayPrecision"`
@@ -115,7 +115,7 @@ func (ac *account) connect() ([]byte, error) {
 }
 
 // Get the list of tradeable instruments for the given Account. The list of tradeable instruments is dependent on the regulatory division that the Account is located in, thus should be the same for all Accounts owned by a single user.
-func (ac *account) GetAccountInstruments(live bool, accountID string, querys ...accountOpts) (*AccountInstruments, error) { // {{{
+func (ac *account) GetAccountInstruments(live bool, accountID string, querys ...accountOpts) (*accountInstruments, error) { // {{{
 	q := newAccountQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Account.AccountInstrument)
 	url := fmt.Sprintf(ep, accountID)
@@ -129,7 +129,7 @@ func (ac *account) GetAccountInstruments(live bool, accountID string, querys ...
 	if err != nil {
 		return nil, err
 	}
-	data := &AccountInstruments{}
+	data := &accountInstruments{}
 	if err = json.Unmarshal(resp, &data); err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (ac *account) GetAccountInstruments(live bool, accountID string, querys ...
 } // }}}
 
 // Get a summary for a single Account that a client has access to.
-func (ac *account) GetAccountSummary(live bool, accountID string, querys ...accountOpts) (*AccountSummary, error) { // {{{
+func (ac *account) GetAccountSummary(live bool, accountID string, querys ...accountOpts) (*accountSummary, error) { // {{{
 	q := newAccountQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Account.AccountSummary)
 	url := fmt.Sprintf(ep, accountID)
@@ -151,7 +151,7 @@ func (ac *account) GetAccountSummary(live bool, accountID string, querys ...acco
 	if err != nil {
 		return nil, err
 	}
-	data := &AccountSummary{}
+	data := &accountSummary{}
 	err = json.Unmarshal(resp, &data)
 	if err != nil {
 		return nil, err
@@ -160,7 +160,7 @@ func (ac *account) GetAccountSummary(live bool, accountID string, querys ...acco
 } // }}}
 
 // Get the full details for a single Account that a client has access to. Full pending Order, open Trade and open Position representations are provided.
-func (ac *account) GetAccountById(live bool, accountID string, querys ...accountOpts) (*AccountById, error) { // {{{
+func (ac *account) GetAccountById(live bool, accountID string, querys ...accountOpts) (*accountById, error) { // {{{
 	q := newAccountQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Account.AccountsById)
 	url := fmt.Sprintf(ep, accountID)
@@ -174,7 +174,7 @@ func (ac *account) GetAccountById(live bool, accountID string, querys ...account
 	if err != nil {
 		return nil, err
 	}
-	data := &AccountById{}
+	data := &accountById{}
 	if err = json.Unmarshal(resp, &data); err != nil {
 		return nil, err
 	}
@@ -182,7 +182,7 @@ func (ac *account) GetAccountById(live bool, accountID string, querys ...account
 } // }}}
 
 // Get the full details for a single Account that a client has access to. Full pending Order, open Trade and open Position representations are provided.
-func (ac *account) GetAccountList(live bool, querys ...accountOpts) (*AccountList, error) { // {{{
+func (ac *account) GetAccountList(live bool, querys ...accountOpts) (*accountList, error) { // {{{
 	q := newAccountQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Account.Accounts)
 	url := ep
@@ -196,7 +196,7 @@ func (ac *account) GetAccountList(live bool, querys ...accountOpts) (*AccountLis
 	if err != nil {
 		return nil, err
 	}
-	var data = &AccountList{}
+	var data = &accountList{}
 	if err = json.Unmarshal(resp, &data); err != nil {
 		return nil, err
 	}

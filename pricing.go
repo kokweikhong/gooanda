@@ -12,7 +12,7 @@ import (
 )
 
 // PricingCandleLatest data structure
-type PricingCandleLatest struct { // {{{
+type pricingCandleLatest struct { // {{{
 	LatestCandles []struct {
 		Instrument  string `json:"instrument"`
 		Granularity string `json:"granularity"`
@@ -28,7 +28,7 @@ type PricingCandleLatest struct { // {{{
 } // }}}
 
 // PricingInformation data structure
-type PricingInformation struct { // {{{
+type pricingInformation struct { // {{{
 	Time   string `json:"time"`
 	Prices []struct {
 		Type string `json:"type"`
@@ -54,7 +54,7 @@ type PricingInformation struct { // {{{
 } // }}}
 
 // PricingCandlestickInstrument data structure
-type PricingCandlestickInstrument struct { // {{{
+type pricingCandlestickInstrument struct { // {{{
 	Instrument  string `json:"instrument"`
 	Granularity string `json:"granularity"`
 	Candles     []struct {
@@ -95,7 +95,7 @@ func (pr *pricing) connect() ([]byte, error) {
 }
 
 // GetCandlesLatest get dancing bears and most recently completed candles within an Account for specified combinations of instrument, granularity, and price component.
-func (pr *pricing) GetCandlesLatest(live bool, accountID string, instruments []string, granularity string, priceComponent string, querys ...pricingOpts) (*PricingCandleLatest, error) { // {{{
+func (pr *pricing) GetCandlesLatest(live bool, accountID string, instruments []string, granularity string, priceComponent string, querys ...pricingOpts) (*pricingCandleLatest, error) { // {{{
 	querys = append(querys, pr.Query.WithCandleSpecifications(instruments, granularity, priceComponent))
 	q := newPricingQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Pricing.CandleLatest)
@@ -110,7 +110,7 @@ func (pr *pricing) GetCandlesLatest(live bool, accountID string, instruments []s
 	if err != nil {
 		return nil, err
 	}
-	var data = &PricingCandleLatest{}
+	var data = &pricingCandleLatest{}
 	if err = json.Unmarshal(resp, &data); err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ func (pr *pricing) GetCandlesLatest(live bool, accountID string, instruments []s
 } // }}}
 
 // GetPricingInformation
-func (pr *pricing) GetPricingInformation(live bool, accountID string, instruments []string, querys ...pricingOpts) (*PricingInformation, error) { // {{{
+func (pr *pricing) GetPricingInformation(live bool, accountID string, instruments []string, querys ...pricingOpts) (*pricingInformation, error) { // {{{
 	querys = append(querys, pr.Query.WithInstruments(instruments))
 	q := newPricingQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Pricing.PricingInfo)
@@ -133,7 +133,7 @@ func (pr *pricing) GetPricingInformation(live bool, accountID string, instrument
 	if err != nil {
 		return nil, err
 	}
-	var data = &PricingInformation{}
+	var data = &pricingInformation{}
 	if err = json.Unmarshal(resp, &data); err != nil {
 		return nil, err
 	}
@@ -163,7 +163,7 @@ func (pr *pricing) GetStreamingPrice(live bool, accountID string, instruments []
 } // }}}
 
 // GetCandlestickInstrument fetch candlestick data for an instrument.
-func (pr *pricing) GetCandlestickInstrument(live bool, accountID string, instrument string, querys ...pricingOpts) (*PricingCandlestickInstrument, error) { // {{{
+func (pr *pricing) GetCandlestickInstrument(live bool, accountID string, instrument string, querys ...pricingOpts) (*pricingCandlestickInstrument, error) { // {{{
 	q := newPricingQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Pricing.InstrumentCandles)
 	url := fmt.Sprintf(ep, accountID, instrument)
@@ -178,7 +178,7 @@ func (pr *pricing) GetCandlestickInstrument(live bool, accountID string, instrum
 		fmt.Println(err)
 		return nil, err
 	}
-	var data = &PricingCandlestickInstrument{}
+	var data = &pricingCandlestickInstrument{}
 	if err = json.Unmarshal(resp, &data); err != nil {
 		return nil, err
 	}
