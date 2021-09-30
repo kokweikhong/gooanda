@@ -23,10 +23,10 @@ type accountById struct { // {{{
 	Account struct {
 		accountGlobal
 		Postions []struct {
-			Instrument   string             `json:"instrument"`
-			Long         struct{ position } `json:"long"`
-			Short        struct{ position } `json:"short"`
-			UnrealizedPL string             `json:"unrealizedPL"`
+			Instrument   string                    `json:"instrument"`
+			Long         struct{ accountPosition } `json:"long"`
+			Short        struct{ accountPosition } `json:"short"`
+			UnrealizedPL string                    `json:"unrealizedPL"`
 		} `json:"positions"`
 	} `json:"account"`
 } // }}}
@@ -86,7 +86,7 @@ type accountGlobal struct { // {{{
 	PositionValue               string `json:"positionValue"`
 } // }}}
 
-type position struct {
+type accountPosition struct {
 	PL           string `json:"pl"`
 	ResettablePL string `json:"resettablePL"`
 	Units        string `json:"units"`
