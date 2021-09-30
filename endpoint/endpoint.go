@@ -36,12 +36,18 @@ type trade struct {
 	CloseTrade, UpdateClientExt, UpdateTrade rest
 }
 
+type position struct {
+	PositionList, OpenPositionList                       rest
+	SingleInstrumentPosition, ClosePositionForInstrument rest
+}
+
 var (
 	Account    *account
 	Instrument *instrument
 	Pricing    *pricing
 	Order      *order
 	Trade      *trade
+	Position   *position
 )
 
 func init() {
@@ -74,6 +80,12 @@ func init() {
 		CloseTrade:      "/v3/accounts/%v/trades/%v/close",
 		UpdateClientExt: "/v3/accounts/%v/trades/%v/clientExtensions",
 		UpdateTrade:     "/v3/accounts/%v/trades/%v/orders",
+	}
+	Position = &position{
+		PositionList:               "/v3/accounts/%v/positions",
+		OpenPositionList:           "/v3/accounts/%v/openPositions",
+		SingleInstrumentPosition:   "/v3/accounts/%v/positions/%v",
+		ClosePositionForInstrument: "/v3/accounts/%v/positions/%v/close",
 	}
 }
 
