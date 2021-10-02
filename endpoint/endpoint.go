@@ -41,13 +41,20 @@ type position struct {
 	SingleInstrumentPosition, ClosePositionForInstrument rest
 }
 
+type transaction struct {
+	Transactions, TransactionById, TransactionIdRange rest
+	TransactionSinceId                                rest
+	TransactionStream                                 stream
+}
+
 var (
-	Account    *account
-	Instrument *instrument
-	Pricing    *pricing
-	Order      *order
-	Trade      *trade
-	Position   *position
+	Account     *account
+	Instrument  *instrument
+	Pricing     *pricing
+	Order       *order
+	Trade       *trade
+	Position    *position
+	Transaction *transaction
 )
 
 func init() {
@@ -86,6 +93,13 @@ func init() {
 		OpenPositionList:           "/v3/accounts/%v/openPositions",
 		SingleInstrumentPosition:   "/v3/accounts/%v/positions/%v",
 		ClosePositionForInstrument: "/v3/accounts/%v/positions/%v/close",
+	}
+	Transaction = &transaction{
+		Transactions:       "/v3/accounts/%v/transactions",
+		TransactionById:    "/v3/accounts/%v/transactions/%v",
+		TransactionIdRange: "/v3/accounts/%v/transactions/idrange",
+		TransactionSinceId: "/v3/accounts/%v/transactions/sinceid",
+		TransactionStream:  "/v3/accounts/%v/transactions/stream",
 	}
 }
 
