@@ -39,6 +39,7 @@ type trade struct {
 	TakeProftStopLoss *requestTPSL
 }
 
+// NewTradeConnection is to crete connection for TRADE api.
 func NewTradeConnection(token string) *trade {
 	con := &trade{}
 	con.connection.token = token
@@ -47,7 +48,7 @@ func NewTradeConnection(token string) *trade {
 }
 
 // GetTradeList is to get a list of Trades for an Account.
-func (tr *trade) GetTradeList(live bool, accountID string, opts ...tradeOpts) (*tradeList, error) {
+func (tr *trade) GetTradeList(live bool, accountID string, opts ...tradeOpts) (*tradeList, error) { // {{{
 	var result *tradeList
 	query := newTradeQuery(opts...)
 	ep := fmt.Sprintf(endpoint.GetEndpoint(live, endpoint.Trade.Trades), accountID)
@@ -66,10 +67,10 @@ func (tr *trade) GetTradeList(live bool, accountID string, opts ...tradeOpts) (*
 		return result, fmt.Errorf("failed to unmarshal data in GetTradeList, %v", err)
 	}
 	return result, nil
-}
+} // }}}
 
 // GetOpenTradeList is to get the list of open Trades for an Account.
-func (tr *trade) GetOpenTradeList(live bool, accountID string) (*tradeList, error) {
+func (tr *trade) GetOpenTradeList(live bool, accountID string) (*tradeList, error) { // {{{
 	var result *tradeList
 	ep := fmt.Sprintf(endpoint.GetEndpoint(live, endpoint.Trade.OpenTrades), accountID)
 	tr.method = http.MethodGet
@@ -82,10 +83,10 @@ func (tr *trade) GetOpenTradeList(live bool, accountID string) (*tradeList, erro
 		return result, fmt.Errorf("GetOpenTradeList unmarshal error, %v", err)
 	}
 	return result, nil
-}
+} // }}}
 
 // GetSpecificTradeDetails is to get the details of a specific Trade in an Account.
-func (tr *trade) GetSpecificTradeDetails(live bool, accountID, tradeID string) (*specificTrade, error) {
+func (tr *trade) GetSpecificTradeDetails(live bool, accountID, tradeID string) (*specificTrade, error) { // {{{
 	var result *specificTrade
 	ep := fmt.Sprintf(endpoint.GetEndpoint(live, endpoint.Trade.TradeDetails),
 		accountID, tradeID)
@@ -99,26 +100,26 @@ func (tr *trade) GetSpecificTradeDetails(live bool, accountID, tradeID string) (
 		return result, fmt.Errorf("GetSpecificTradeDetails unmarshal error, %v", err)
 	}
 	return result, nil
-}
+} // }}}
 
 // CloseTrade is to close (partially or fully) a specific open Trade in an Account.
-func (tr *trade) CloseTrade(live bool, accountID, tradeID string, units interface{}) {
+func (tr *trade) CloseTrade(live bool, accountID, tradeID string, units interface{}) (string, error) { // {{{
 	ep := fmt.Sprintf(endpoint.GetEndpoint(live, endpoint.Trade.CloseTrade),
 		accountID, tradeID)
 	switch t := units.(type) {
 	case string:
 		if !strings.EqualFold(t, "all") {
-			log.Fatal("units if string must only be all")
+			return "", fmt.Errorf("units if string must only be all")
 		} else {
 			units = strings.ToUpper(t)
 		}
 	case float64:
 		if t <= 0 {
-			log.Fatalf("%v must be greater than 0", units)
+			return "", fmt.Errorf("%v must be greater than 0", units)
 		}
 	case int:
 		if t <= 0 {
-			log.Fatalf("%v must be greater than 0", units)
+			return "", fmt.Errorf("%v must be greater than 0", units)
 		}
 	}
 	tr.method = http.MethodPut
@@ -126,29 +127,28 @@ func (tr *trade) CloseTrade(live bool, accountID, tradeID string, units interfac
 	tr.data = []byte(fmt.Sprintf(`{"units":"%v"}`, units))
 	resp, err := tr.connect()
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-	fmt.Println(string(resp))
-}
+	return string(resp), nil
+} // }}}
 
 // UpdateTPSLForTrade is to create, replace and cancel a Trade’s dependent
 // Orders (Take Profit, Stop Loss and Trailing Stop Loss) through the Trade itself
-func (tr *trade) UpdateTPSLForTrade(live bool, accountID, tradeID string) {
+func (tr *trade) UpdateTPSLForTrade(live bool, accountID, tradeID string) (string, error) { // {{{
 	body, err := json.Marshal(tr.TakeProftStopLoss)
 	if err != nil {
 		log.Fatalf("failed to unmarshal takeprofit and stop loss, %v", err)
 	}
-	fmt.Printf("request body: %v\n", string(body))
 	tr.endpoint = fmt.Sprintf(endpoint.GetEndpoint(live,
 		endpoint.Trade.UpdateTrade), accountID, tradeID)
 	tr.data = body
 	tr.method = http.MethodPut
 	resp, err := tr.connect()
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-	fmt.Println(string(resp))
-}
+	return string(resp), nil
+} // }}}
 
 type requestTPSL struct {
 	TakeProfit         *tpsl `json:"takeProfit,omitempty"`

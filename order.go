@@ -138,20 +138,6 @@ type detailSLTP struct {
 	GtdTime     string  `json:"gtdTime,omitempty"`
 }
 
-// type orderResponse struct {
-//     OrderCreateTransaction *transaction `json:"orderCreateTransaction,omitempty"`
-//     orderFillTransaction : (OrderFillTransaction),
-//     orderCancelTransaction : (OrderCancelTransaction),
-//     orderReissueTransaction : (Transaction),
-//     orderReissueRejectTransaction : (Transaction),
-//     relatedTransactionIDs : (Array[TransactionID]),
-//     lastTransactionID : (TransactionID)
-// }
-
-// type transaction struct {
-
-// }
-
 type configOpts func(*configOrder)
 
 // extendOrderConfig is to add fields to current configuration after default config called.
@@ -346,36 +332,54 @@ func (cf *configOrder) convertConfig() ([]byte, error) {
 		cf.Order.GuaranteedStopLossOnFill = nil
 		cf.Order.TrailingStopLossOnFill = nil
 	}
-	fmt.Println(cf.Order.Type)
 	data, err := json.Marshal(cf)
 	if err != nil {
-		return data, fmt.Errorf("failed to marshal config to json, %v", err)
+		return data, fmt.Errorf("failed to marshal config %T to json, %v", cf, err)
 	}
 	return data, nil
 } // }}}
 
 // ----------------  ORDER MAIN FUNCTION-------------------------
 
-func (od *order) GetOrderList(live bool, accountID string, querys ...orderOpts) {
+func (od *order) GetOrderList(live bool, accountID string, querys ...orderOpts) (string, error) {
 	q := newOrderQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Order.Orders)
 	ep = fmt.Sprintf(ep, accountID)
 	url, err := urlAddQuery(ep, q)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 	od.endpoint = url
 	od.method = http.MethodGet
 	resp, err := od.connect()
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-	fmt.Println(string(resp))
+	return string(resp), nil
 }
 
-func GetOrderPendingList() {}
+func (od *order) GetPendingOrders(live bool, accountID string) (string, error) {
+	ep := endpoint.GetEndpoint(live, endpoint.Order.PendingOrder)
+	od.endpoint = fmt.Sprintf(ep, accountID)
+	od.method = http.MethodGet
+	resp, err := od.connect()
+	if err != nil {
+		return string(resp), err
+	}
+	return string(resp), err
+}
 
-func GetOrderDetails() {}
+func (od *order) GetOrderDetails(live bool, accountID, tradeID string) (string, error) {
+	ep := endpoint.GetEndpoint(live, endpoint.Order.OrderDetails)
+	od.endpoint = fmt.Sprintf(ep, accountID, tradeID)
+	od.method = http.MethodGet
+	resp, err := od.connect()
+	if err != nil {
+		return string(resp), err
+	}
+	return string(resp), nil
+
+}
 
 func PutOrderReplace() {}
 
@@ -384,7 +388,7 @@ func PutOrderCancel() {}
 func PutOrderUpdateClientExt() {}
 
 // MarketOrderRequest specifies the parameters that may be set when creating a Market Order.
-func (od *order) MarketOrderRequest(live bool, accountID, instrument string, units float64, opts ...configOpts) {
+func (od *order) MarketOrderRequest(live bool, accountID, instrument string, units float64, opts ...configOpts) (string, error) { // {{{
 	conf := &configOrder{}
 	conf.Order.Type = kw.ORDERTYPE.MARKET
 	conf.defaultConfig()
@@ -392,21 +396,19 @@ func (od *order) MarketOrderRequest(live bool, accountID, instrument string, uni
 	conf.extendOrderConfig(
 		od.Config.WithInstrument(instrument),
 		od.Config.WithUnits(units))
-	fmt.Println(conf.Order.Instrument)
 	data, err := conf.convertConfig()
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-	fmt.Printf("order created with below configuration:\n%v\n", string(data))
 	od.data = data
 	od.method = http.MethodPost
 	ep := endpoint.GetEndpoint(live, endpoint.Order.Orders)
 	od.endpoint = fmt.Sprintf(ep, accountID)
 	resp, err := od.connect()
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-	fmt.Println(string(resp))
+	return string(resp), nil
 }
 
 // LimitOrderRequest specifies the parameters that may be set when creating a Limit Order.
@@ -433,10 +435,10 @@ func (od *order) LimitOrderRequest(live bool, accountID, instrument string, pric
 		log.Fatal(err)
 	}
 	fmt.Println(string(resp))
-}
+} // }}}
 
 // StopOrderRequest specifies the parameters that may be set when creating a Stop Order.
-func (od *order) StopOrderRequest(live bool, accountID, instrument string, price, units float64, opts ...configOpts) {
+func (od *order) StopOrderRequest(live bool, accountID, instrument string, price, units float64, opts ...configOpts) (string, error) { // {{{
 	conf := &configOrder{}
 	conf.Order.Type = kw.ORDERTYPE.STOP
 	conf.defaultConfig()
@@ -447,22 +449,21 @@ func (od *order) StopOrderRequest(live bool, accountID, instrument string, price
 		od.Config.WithPrice(price))
 	data, err := conf.convertConfig()
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-	fmt.Printf("order created with below configuration:\n%v\n", string(data))
 	od.data = data
 	od.method = http.MethodPost
 	ep := endpoint.GetEndpoint(live, endpoint.Order.Orders)
 	od.endpoint = fmt.Sprintf(ep, accountID)
 	resp, err := od.connect()
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-	fmt.Println(string(resp))
-}
+	return string(resp), nil
+} // }}}
 
 // MarketIfTouchedOrderRequest specifies the parameters that may be set when creating a Market-if-Touched Order.
-func (od *order) MarketIfTouchedOrderRequest(live bool, accountID, instrument string, price, units float64, opts ...configOpts) {
+func (od *order) MarketIfTouchedOrderRequest(live bool, accountID, instrument string, price, units float64, opts ...configOpts) (string, error) { // {{{
 	conf := &configOrder{}
 	conf.Order.Type = kw.ORDERTYPE.MARKET_IF_TOUCHED
 	conf.defaultConfig()
@@ -473,22 +474,22 @@ func (od *order) MarketIfTouchedOrderRequest(live bool, accountID, instrument st
 		od.Config.WithPrice(price))
 	data, err := conf.convertConfig()
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-	fmt.Printf("order created with below configuration:\n%v\n", string(data))
 	od.data = data
 	od.method = http.MethodPost
 	ep := endpoint.GetEndpoint(live, endpoint.Order.Orders)
 	od.endpoint = fmt.Sprintf(ep, accountID)
 	resp, err := od.connect()
 	if err != nil {
-		log.Fatal(err)
+		return string(resp), err
 	}
-	fmt.Println(string(resp))
-}
+	return string(resp), nil
+} // }}}
 
-// TakeProfitOrderRequest specifies the parameters that may be set when creating a Take Profit Order.
-func (od *order) TakeProfitOrderRequest(live bool, accountID, tradeID string, price float64, opts ...configOpts) {
+// TakeProfitOrderRequest specifies the parameters that may be
+// set when creating a Take Profit Order.
+func (od *order) TakeProfitOrderRequest(live bool, accountID, tradeID string, price float64, opts ...configOpts) (string, error) { // {{{
 	conf := &configOrder{}
 	conf.Order.Type = kw.ORDERTYPE.TAKE_PROFIT
 	conf.defaultConfig()
@@ -498,7 +499,7 @@ func (od *order) TakeProfitOrderRequest(live bool, accountID, tradeID string, pr
 		od.Config.WithPrice(price))
 	data, err := conf.convertConfig()
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 	fmt.Printf("order created with below configuration:\n%v\n", string(data))
 	od.data = data
@@ -507,13 +508,15 @@ func (od *order) TakeProfitOrderRequest(live bool, accountID, tradeID string, pr
 	od.endpoint = fmt.Sprintf(ep, accountID)
 	resp, err := od.connect()
 	if err != nil {
-		log.Fatal(err)
+		return string(resp), err
 	}
-	fmt.Println(string(resp))
-}
+	return string(resp), nil
+} // }}}
 
-// StopLossOrderRequest specifies the parameters that may be set when creating a Stop Loss Order. Only one of the price and distance fields may be specified.
-func (od *order) StopLossOrderRequest(live bool, accountID, tradeID string, price float64, opts ...configOpts) {
+// StopLossOrderRequest specifies the parameters that may be set
+// when creating a Stop Loss Order. Only one of the price and
+// distance fields may be specified.
+func (od *order) StopLossOrderRequest(live bool, accountID, tradeID string, price float64, opts ...configOpts) (string, error) { // {{{
 	conf := &configOrder{}
 	conf.Order.Type = kw.ORDERTYPE.STOP_LOSS
 	conf.defaultConfig()
@@ -523,22 +526,23 @@ func (od *order) StopLossOrderRequest(live bool, accountID, tradeID string, pric
 		od.Config.WithPrice(price))
 	data, err := conf.convertConfig()
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-	fmt.Printf("order created with below configuration:\n%v\n", string(data))
 	od.data = data
 	od.method = http.MethodPost
 	ep := endpoint.GetEndpoint(live, endpoint.Order.Orders)
 	od.endpoint = fmt.Sprintf(ep, accountID)
 	resp, err := od.connect()
 	if err != nil {
-		log.Fatal(err)
+		return string(resp), err
 	}
-	fmt.Println(string(resp))
-}
+	return string(resp), nil
+} // }}}
 
-// GuaranteedStopLossOrderRequest specifies the parameters that may be set when creating a Guaranteed Stop Loss Order. Only one of the price and distance fields may be specified.
-func (od *order) GuaranteedStopLossOrderRequest(live bool, accountID, tradeID string, price float64, opts ...configOpts) {
+// GuaranteedStopLossOrderRequest specifies the parameters that
+// may be set when creating a Guaranteed Stop Loss Order.
+// Only one of the price and distance fields may be specified.
+func (od *order) GuaranteedStopLossOrderRequest(live bool, accountID, tradeID string, price float64, opts ...configOpts) (string, error) { // {{{
 	conf := &configOrder{}
 	conf.Order.Type = kw.ORDERTYPE.GUARANTEED_STOP_LOSS
 	conf.defaultConfig()
@@ -548,22 +552,22 @@ func (od *order) GuaranteedStopLossOrderRequest(live bool, accountID, tradeID st
 		od.Config.WithPrice(price))
 	data, err := conf.convertConfig()
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-	fmt.Printf("order created with below configuration:\n%v\n", string(data))
 	od.data = data
 	od.method = http.MethodPost
 	ep := endpoint.GetEndpoint(live, endpoint.Order.Orders)
 	od.endpoint = fmt.Sprintf(ep, accountID)
 	resp, err := od.connect()
 	if err != nil {
-		log.Fatal(err)
+		return string(resp), err
 	}
-	fmt.Println(string(resp))
-}
+	return string(resp), nil
+} // }}}
 
-// TrailingStopLossOrderRequest specifies the parameters that may be set when creating a Trailing Stop Loss Order.
-func (od *order) TrailingStopLossOrderRequest(live bool, accountID, tradeID string, distance float64, opts ...configOpts) {
+// TrailingStopLossOrderRequest specifies the parameters that
+// may be set when creating a Trailing Stop Loss Order.
+func (od *order) TrailingStopLossOrderRequest(live bool, accountID, tradeID string, distance float64, opts ...configOpts) (string, error) { // {{{
 	conf := &configOrder{}
 	conf.Order.Type = kw.ORDERTYPE.TRAILING_STOP_LOSS
 	conf.defaultConfig()
@@ -573,16 +577,15 @@ func (od *order) TrailingStopLossOrderRequest(live bool, accountID, tradeID stri
 		od.Config.WithPrice(distance))
 	data, err := conf.convertConfig()
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-	fmt.Printf("order created with below configuration:\n%v\n", string(data))
 	od.data = data
 	od.method = http.MethodPost
 	ep := endpoint.GetEndpoint(live, endpoint.Order.Orders)
 	od.endpoint = fmt.Sprintf(ep, accountID)
 	resp, err := od.connect()
 	if err != nil {
-		log.Fatal(err)
+		return string(resp), err
 	}
-	fmt.Println(string(resp))
-}
+	return string(resp), nil
+} // }}}

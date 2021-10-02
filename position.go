@@ -12,7 +12,7 @@ type position struct {
 	connection
 }
 
-func NewPosititionConnection(token string) *position {
+func NewPositionConnection(token string) *position {
 	conn := &position{}
 	conn.token = token
 	return conn

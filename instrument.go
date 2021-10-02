@@ -75,7 +75,7 @@ func (in *instrument) connect() ([]byte, error) {
 }
 
 // GetInstrumentCandles: Fetch candlestick data for an instrument.
-func (in *instrument) GetCandles(live bool, instrument string, querys ...instrumentOpts) (*InstrumentCandles, error) {
+func (in *instrument) GetCandles(live bool, instrument string, querys ...instrumentOpts) (*InstrumentCandles, error) { // {{{
 	q := newInstrumentQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Instrument.InstrumentCandles)
 	url := fmt.Sprintf(ep, instrument)
@@ -94,10 +94,10 @@ func (in *instrument) GetCandles(live bool, instrument string, querys ...instrum
 		return nil, err
 	}
 	return data, nil
-}
+} // }}}
 
 // GetInstrumentOrderBook: Fetch an order book for an instrument.
-func (in *instrument) GetOrderBook(live bool, instrument string, querys ...instrumentOpts) (*InstrumentOrderBook, error) {
+func (in *instrument) GetOrderBook(live bool, instrument string, querys ...instrumentOpts) (*InstrumentOrderBook, error) { // {{{
 	q := newInstrumentQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Instrument.InstrumentOrderBook)
 	url := fmt.Sprintf(ep, instrument)
@@ -116,10 +116,10 @@ func (in *instrument) GetOrderBook(live bool, instrument string, querys ...instr
 		return nil, err
 	}
 	return data, nil
-}
+} // }}}
 
 // GetInstrumentPositionBook: Fetch a position book for an instrument.
-func (in *instrument) GetPositionBook(live bool, instrument string, querys ...instrumentOpts) (*InstrumentPositionBook, error) {
+func (in *instrument) GetPositionBook(live bool, instrument string, querys ...instrumentOpts) (*InstrumentPositionBook, error) { // {{{
 	q := newInstrumentQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Instrument.InstrumentPositionBook)
 	url := fmt.Sprintf(ep, instrument)
@@ -138,7 +138,7 @@ func (in *instrument) GetPositionBook(live bool, instrument string, querys ...in
 		return nil, err
 	}
 	return data, nil
-}
+} // }}}
 
 type instrumentQuery struct {
 	Price             string `json:"price,omitempty"`

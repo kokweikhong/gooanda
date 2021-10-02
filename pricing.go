@@ -141,25 +141,22 @@ func (pr *pricing) GetPricingInformation(live bool, accountID string, instrument
 } // }}}
 
 // GetStreamingPrice
-func (pr *pricing) GetStreamingPrice(live bool, accountID string, instruments []string, querys ...pricingOpts) ([]byte, error) { // {{{
+func (pr *pricing) GetStreamingPrice(live bool, accountID string, instruments []string, querys ...pricingOpts) (string, error) { // {{{
 	querys = append(querys, pr.Query.WithInstruments(instruments))
 	q := newPricingQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Pricing.PricingStream)
 	url := fmt.Sprintf(ep, accountID)
 	u, err := urlAddQuery(url, q)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	fmt.Println(u)
 	pr.endpoint = u
 	pr.method = http.MethodGet
 	resp, err := pr.connect()
 	if err != nil {
-		fmt.Println(err)
-		return nil, err
+		return "", err
 	}
-	fmt.Println(string(resp))
-	return nil, nil
+	return string(resp), nil
 } // }}}
 
 // GetCandlestickInstrument fetch candlestick data for an instrument.
@@ -186,8 +183,6 @@ func (pr *pricing) GetCandlestickInstrument(live bool, accountID string, instrum
 } // }}}
 
 type pricingQuery struct {
-	// List of CandleSpecification (csv)
-	// List of candle specifications to get pricing for. [required]
 	CandleSpecifications   string `json:"candleSpecifications,omitempty"`
 	Units                  string `json:"units,omitempty"`
 	Smooth                 string `json:"smooth,omitempty"`
@@ -227,9 +222,8 @@ func (*pricingFunc) WithCandleSpecifications(instruments []string, granularity, 
 	}
 }
 
-// QrPrFromTo:
-// The start of the time range to fetch candlesticks for.
-// The end of the time range to fetch candlesticks for.
+// WithFromTo is the start of the time range to fetch candlesticks for and
+// the end of the time range to fetch candlesticks for.
 func (*pricingFunc) WithFromTo(from, to time.Time) pricingOpts {
 	return func(pq *pricingQuery) {
 		if to.Unix() < from.Unix() || to.Unix() > time.Now().Unix() {
