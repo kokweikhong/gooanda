@@ -9,7 +9,7 @@ import (
 	"github.com/kokweikhong/gooanda/endpoint"
 )
 
-// Accounts data structure
+// GetAccountList data structure
 type accountList struct { // {{{
 	Accounts []struct {
 		ID           string   `json:"id"`
@@ -18,7 +18,7 @@ type accountList struct { // {{{
 	}
 } // }}}
 
-// AccountById data structure
+// GetAccountById data structure
 type accountById struct { // {{{
 	Account struct {
 		accountGlobal
@@ -31,7 +31,7 @@ type accountById struct { // {{{
 	} `json:"account"`
 } // }}}
 
-// AccountSummary data structure
+// GetAccountSummary data structure.
 type accountSummary struct { // {{{
 	Account struct {
 		accountGlobal
@@ -41,7 +41,7 @@ type accountSummary struct { // {{{
 	} `json:"account"`
 } // }}}
 
-// AccountInstruments data structure
+// GetAccountInstruments data structure.
 type accountInstruments struct { // {{{
 	Intruments []struct {
 		DisplayName                 string `json:"displayName"`
@@ -114,7 +114,9 @@ func (ac *account) connect() ([]byte, error) {
 	return resp, nil
 }
 
-// Get the list of tradeable instruments for the given Account. The list of tradeable instruments is dependent on the regulatory division that the Account is located in, thus should be the same for all Accounts owned by a single user.
+// GetAccountInstruments is to get the list of tradeable instruments for the given Account.
+// The list of tradeable instruments is dependent on the regulatory division
+// that the Account is located in, thus should be the same for all Accounts owned by a single user.
 func (ac *account) GetAccountInstruments(live bool, accountID string, querys ...accountOpts) (*accountInstruments, error) { // {{{
 	q := newAccountQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Account.AccountInstrument)
@@ -136,7 +138,7 @@ func (ac *account) GetAccountInstruments(live bool, accountID string, querys ...
 	return data, nil
 } // }}}
 
-// Get a summary for a single Account that a client has access to.
+// GetAccountSummary is to get a summary for a single Account that a client has access to.
 func (ac *account) GetAccountSummary(live bool, accountID string, querys ...accountOpts) (*accountSummary, error) { // {{{
 	q := newAccountQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Account.AccountSummary)
@@ -159,7 +161,8 @@ func (ac *account) GetAccountSummary(live bool, accountID string, querys ...acco
 	return data, nil
 } // }}}
 
-// Get the full details for a single Account that a client has access to. Full pending Order, open Trade and open Position representations are provided.
+// GetAccountById is to get the full details for a single Account that a client has access to.
+// Full pending Order, open Trade and open Position representations are provided.
 func (ac *account) GetAccountById(live bool, accountID string, querys ...accountOpts) (*accountById, error) { // {{{
 	q := newAccountQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Account.AccountsById)
@@ -181,7 +184,8 @@ func (ac *account) GetAccountById(live bool, accountID string, querys ...account
 	return data, nil
 } // }}}
 
-// Get the full details for a single Account that a client has access to. Full pending Order, open Trade and open Position representations are provided.
+// GetAccountList is to get the full details for a single Account that a client has access to.
+// Full pending Order, open Trade and open Position representations are provided.
 func (ac *account) GetAccountList(live bool, querys ...accountOpts) (*accountList, error) { // {{{
 	q := newAccountQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Account.Accounts)
@@ -220,14 +224,14 @@ func newAccountQuery(querys ...accountOpts) *accountQuery {
 
 type accountFunc struct{}
 
-// List of instruments to query specifically.
+// WithInstruments is list of instruments to query specifically.
 func (*accountFunc) WithInstruments(instruments []string) accountOpts { // {{{
 	return func(aq *accountQuery) {
 		aq.Instruments = strings.Join(instruments, ",")
 	}
 } // }}}
 
-// ID of the Transaction to get Account changes since.
+// WithSinceTransactionID is ID of the Transaction to get Account changes since.
 func (*accountFunc) WithSinceTransactionID(transactionID string) accountOpts { // {{{
 	return func(aq *accountQuery) {
 		aq.SinceTransactionID = transactionID
