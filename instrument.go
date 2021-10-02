@@ -10,7 +10,7 @@ import (
 	"github.com/kokweikhong/gooanda/endpoint"
 )
 
-// InstrumentCandles data structure
+// GetInstrumentCandles data structure
 type InstrumentCandles struct {
 	Candles []struct {
 		Ask      struct{ instrumentOHLC } `json:"ask"`
@@ -24,12 +24,12 @@ type InstrumentCandles struct {
 	Instrument  string `json:"instrument"`
 }
 
-// InstrumentOrderBook data structure
+// GetInstrumentOrderBook data structure
 type InstrumentOrderBook struct {
 	OrderBook instrumentBook `json:"orderBook"`
 }
 
-// InstrumentPositionBook data structure
+// GetInstrumentPositionBook data structure.
 type InstrumentPositionBook struct {
 	PositionBook instrumentBook `json:"positionBook"`
 }
@@ -58,7 +58,7 @@ type instrument struct {
 	Query *instrumentFunc
 }
 
-// NewInstrumentConnection create new connection for instrument endpoint
+// NewInstrumentConnection create new connection for INSTRUMENT API.
 func NewInstrumentConnection(token string) *instrument {
 	conn := &instrument{}
 	conn.token = token
@@ -74,7 +74,7 @@ func (in *instrument) connect() ([]byte, error) {
 	return resp, nil
 }
 
-// GetInstrumentCandles: Fetch candlestick data for an instrument.
+// GetInstrumentCandles is to fetch candlestick data for an instrument.
 func (in *instrument) GetCandles(live bool, instrument string, querys ...instrumentOpts) (*InstrumentCandles, error) { // {{{
 	q := newInstrumentQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Instrument.InstrumentCandles)
@@ -96,7 +96,7 @@ func (in *instrument) GetCandles(live bool, instrument string, querys ...instrum
 	return data, nil
 } // }}}
 
-// GetInstrumentOrderBook: Fetch an order book for an instrument.
+// GetInstrumentOrderBook is to fetch an order book for an instrument.
 func (in *instrument) GetOrderBook(live bool, instrument string, querys ...instrumentOpts) (*InstrumentOrderBook, error) { // {{{
 	q := newInstrumentQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Instrument.InstrumentOrderBook)
@@ -118,7 +118,7 @@ func (in *instrument) GetOrderBook(live bool, instrument string, querys ...instr
 	return data, nil
 } // }}}
 
-// GetInstrumentPositionBook: Fetch a position book for an instrument.
+// GetInstrumentPositionBook is to fetch a position book for an instrument.
 func (in *instrument) GetPositionBook(live bool, instrument string, querys ...instrumentOpts) (*InstrumentPositionBook, error) { // {{{
 	q := newInstrumentQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Instrument.InstrumentPositionBook)
@@ -166,7 +166,8 @@ func newInstrumentQuery(querys ...instrumentOpts) *instrumentQuery {
 
 type instrumentFunc struct{}
 
-// The time of the snapshot to fetch. If not specified, then the most recent snapshot is fetched.
+// WithTime is the time of the snapshot to fetch. If not specified
+// then the most recent snapshot is fetched.
 func (*instrumentFunc) WithTime(setTime time.Time) instrumentOpts {
 	return func(iq *instrumentQuery) {
 		if setTime.Unix() > time.Now().Unix() {
@@ -176,21 +177,27 @@ func (*instrumentFunc) WithTime(setTime time.Time) instrumentOpts {
 	}
 }
 
-// The day of the week used for granularities that have weekly alignment. [default=Friday]
+// WithWeeklyAlignment is the day of the week used for granularities
+// that have weekly alignment. [default=Friday]
 func (*instrumentFunc) WithWeeklyAlignment(weeklyAlignment string) instrumentOpts {
 	return func(iq *instrumentQuery) {
 		iq.WeeklyAlignment = weeklyAlignment
 	}
 }
 
-// The timezone to use for the dailyAlignment parameter. Candlesticks with daily alignment will be aligned to the dailyAlignment hour within the alignmentTimezone. Note that the returned times will still be represented in UTC. [default=America/New_York]
+// WithAlignmentTimezone is the timezone to use for the dailyAlignment parameter.
+// Candlesticks with daily alignment will be aligned to the dailyAlignment hour
+// within the alignmentTimezone. Note that the returned times will still
+// be represented in UTC. [default=America/New_York]
 func (*instrumentFunc) WithAlignmentTimezone(timezone string) instrumentOpts {
 	return func(iq *instrumentQuery) {
 		iq.AlignmentTimezone = timezone
 	}
 }
 
-// The hour of the day (in the specified timezone) to use for granularities that have daily alignments. [default=17, minimum=0, maximum=23]
+// WithDailyAlignment is the hour of the day (in the specified timezone)
+// to use for granularities that have daily alignments.
+// [default=17, minimum=0, maximum=23]
 func (*instrumentFunc) WithDailyAlignment(alignment int) instrumentOpts {
 	return func(iq *instrumentQuery) {
 		if alignment > 23 || alignment < 0 {
@@ -201,21 +208,28 @@ func (*instrumentFunc) WithDailyAlignment(alignment int) instrumentOpts {
 	}
 }
 
-// A flag that controls whether the candlestick that is covered by the from time should be included in the results. This flag enables clients to use the timestamp of the last completed candlestick received to poll for future candlesticks but avoid receiving the previous candlestick repeatedly. [default=True]
+// WithWithoutIncludeFirst is a flag that controls whether the candlestick
+// that is covered by the from time should be included in the results.
+// This flag enables clients to use the timestamp of the last completed
+// candlestick received to poll for future candlesticks but avoid receiving
+// the previous candlestick repeatedly. [default=True]
 func (*instrumentFunc) WithWithoutIncludeFirst() instrumentOpts {
 	return func(iq *instrumentQuery) {
 		iq.IncludeFirst = "false"
 	}
 }
 
-// A flag that controls whether the candlestick is “smoothed” or not. A smoothed candlestick uses the previous candle’s close price as its open price, while an un-smoothed candlestick uses the first price from its time range as its open price. [default=False]
-func (*instrumentFunc) WithWithSmooth() instrumentOpts {
+// WithSmooth A flag that controls whether the candlestick is “smoothed” or not.
+// A smoothed candlestick uses the previous candle’s close price as its
+// open price, while an un-smoothed candlestick uses the first price from
+// its time range as its open price. [default=False]
+func (*instrumentFunc) WithSmooth() instrumentOpts {
 	return func(iq *instrumentQuery) {
 		iq.Smooth = "true"
 	}
 }
 
-// from: The start of the time range to fetch candlesticks for.
+// WithFrom is the start of the time range to fetch candlesticks for.
 func (*instrumentFunc) WithFrom(from time.Time) instrumentOpts {
 	return func(iq *instrumentQuery) {
 		if from.Unix() < time.Now().Unix() {
@@ -226,8 +240,8 @@ func (*instrumentFunc) WithFrom(from time.Time) instrumentOpts {
 	}
 }
 
-// from: The start of the time range to fetch candlesticks for.
-// to: The end of the time range to fetch candlesticks for.
+// WithFromTo is the start of the time range to fetch candlesticks for
+// and the end of the time range to fetch candlesticks for.
 func (*instrumentFunc) WithFromTo(from, to time.Time) instrumentOpts {
 	return func(iq *instrumentQuery) {
 		if to.Unix() > from.Unix() || to.Unix() > time.Now().Unix() {
@@ -241,7 +255,10 @@ func (*instrumentFunc) WithFromTo(from, to time.Time) instrumentOpts {
 	}
 }
 
-// The number of candlesticks to return in the response. Count should not be specified if both the start and end parameters are provided, as the time range combined with the granularity will determine the number of candlesticks to return. [default=500, maximum=5000]
+// WithCount is the number of candlesticks to return in the response.
+// Count should not be specified if both the start and end parameters
+// are provided, as the time range combined with the granularity will
+// determine the number of candlesticks to return. [default=500, maximum=5000]
 func (*instrumentFunc) WithCount(count int) instrumentOpts {
 	return func(iq *instrumentQuery) {
 		c := strconv.Itoa(count)
@@ -252,14 +269,14 @@ func (*instrumentFunc) WithCount(count int) instrumentOpts {
 	}
 }
 
-// The granularity of the candlesticks to fetch [default=S5]
+// WithGranularity is the granularity of the candlesticks to fetch [default=S5]
 func (iq *instrumentFunc) WithGranularity(granularity string) instrumentOpts {
 	return func(iq *instrumentQuery) {
 		iq.Granularity = string(granularity)
 	}
 }
 
-// The Price component(s) to get candlestick data for. [default=M]
+// WithPrice is the Price component(s) to get candlestick data for. [default=M]
 func (*instrumentFunc) WithPrice(price string) instrumentOpts {
 	return func(iq *instrumentQuery) {
 		iq.Price = price

@@ -10,6 +10,7 @@ import (
 	"github.com/kokweikhong/gooanda/endpoint"
 )
 
+// GetTradeList and GetOpenTradeList data structure.
 type tradeList struct {
 	LastTransactionID string      `json:"lastTransactionID"`
 	Trades            []dataTrade `json:"trades"`
@@ -39,7 +40,7 @@ type trade struct {
 	TakeProftStopLoss *requestTPSL
 }
 
-// NewTradeConnection is to crete connection for TRADE api.
+// NewTradeConnection is to crete connection for TRADE API.
 func NewTradeConnection(token string) *trade {
 	con := &trade{}
 	con.connection.token = token
@@ -234,24 +235,30 @@ func newTradeQuery(opts ...tradeOpts) *tradeQuery {
 	return q
 }
 
+// WithInstrument is the instrument to filter the requested Trades by.
 func (tf *tradeFunc) WithInstrument(instrument string) tradeOpts {
 	return func(tq *tradeQuery) { tq.Instrument = instrument }
 }
 
+// WithBeforeID is the maximum Trade ID to return. If not provided the
+// most recent Trades in the Account are returned.
 func (tf *tradeFunc) WithBeforeID(beforeID string) tradeOpts {
 	return func(tq *tradeQuery) { tq.BeforeID = beforeID }
 }
 
+// WithCount is the maximum number of Trades to return. [default=50, maximum=500]
 func (tf *tradeFunc) WithCount(count int) tradeOpts {
 	return func(tq *tradeQuery) { tq.Count = count }
 }
 
+// WithIds is list of Trade IDs to retrieve.
 func (tf *tradeFunc) WithIds(ids []string) tradeOpts {
 	return func(tq *tradeQuery) {
 		tq.Ids = strings.Join(ids, ",")
 	}
 }
 
+// WithState is the state to filter the requested Trades by. [default=OPEN]
 func (tf *tradeFunc) WithState(state string) tradeOpts {
 	return func(tq *tradeQuery) { tq.State = state }
 }

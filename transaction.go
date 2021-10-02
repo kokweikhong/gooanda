@@ -21,6 +21,7 @@ func NewTransactionConnection(token string) *transaction {
 	return conn
 }
 
+// GetTransactions data structure
 type transactions struct {
 	From              string   `json:"from"`
 	To                string   `json:"to"`
@@ -127,20 +128,27 @@ func newTransactionQuery(opts ...transactionOpts) *transactionQuery {
 	return t
 }
 
+// WithType is a filter for restricting the types of Transactions to retrieve.
 func (tf *transactionFunc) WithType(transactionType ...string) transactionOpts {
 	return func(tq *transactionQuery) {
 		tq.Type = strings.Join(transactionType, ",")
 	}
 }
 
+// WithFromDate is the starting time (inclusive) of the time range for the
+// Transactions being queried. [default=Account Creation Time]
 func (tf *transactionFunc) WithFromDate(from time.Time) transactionOpts {
 	return func(tq *transactionQuery) { tq.FromDate = from.Format(time.RFC3339) }
 }
 
+// WithToDate is the ending time (inclusive) of the time range for the
+// Transactions being queried. [default=Request Time]
 func (tf *transactionFunc) WithToDate(to time.Time) transactionOpts {
 	return func(tq *transactionQuery) { tq.ToDate = to.Format(time.RFC3339) }
 }
 
+// WithPageSize is the number of Transactions to include in each page
+// of the results. [default=100, maximum=1000]
 func (tf *transactionFunc) WithPageSize(size int) transactionOpts {
 	return func(tq *transactionQuery) {
 		if size < 1 || size > 1000 {

@@ -11,7 +11,7 @@ import (
 	"github.com/kokweikhong/gooanda/endpoint"
 )
 
-// PricingCandleLatest data structure
+// GetCandlesLatest data structure
 type pricingCandleLatest struct { // {{{
 	LatestCandles []struct {
 		Instrument  string `json:"instrument"`
@@ -27,7 +27,7 @@ type pricingCandleLatest struct { // {{{
 	} `json:"latestCandles"`
 } // }}}
 
-// PricingInformation data structure
+// GetPricingInformation data structure
 type pricingInformation struct { // {{{
 	Time   string `json:"time"`
 	Prices []struct {
@@ -53,7 +53,7 @@ type pricingInformation struct { // {{{
 	} `json:"prices"`
 } // }}}
 
-// PricingCandlestickInstrument data structure
+// GetCandlestickInstrument data structure
 type pricingCandlestickInstrument struct { // {{{
 	Instrument  string `json:"instrument"`
 	Granularity string `json:"granularity"`
@@ -79,6 +79,7 @@ type pricing struct {
 	Query *pricingFunc
 }
 
+// NewPricingConnection is to create connection for PRICING API.
 func NewPricingConnection(token string) *pricing {
 	conn := &pricing{}
 	conn.token = token
@@ -94,7 +95,9 @@ func (pr *pricing) connect() ([]byte, error) {
 	return resp, nil
 }
 
-// GetCandlesLatest get dancing bears and most recently completed candles within an Account for specified combinations of instrument, granularity, and price component.
+// GetCandlesLatest get dancing bears and most recently completed candles
+// within an Account for specified combinations of instrument, granularity,
+// and price component.
 func (pr *pricing) GetCandlesLatest(live bool, accountID string, instruments []string, granularity string, priceComponent string, querys ...pricingOpts) (*pricingCandleLatest, error) { // {{{
 	querys = append(querys, pr.Query.WithCandleSpecifications(instruments, granularity, priceComponent))
 	q := newPricingQuery(querys...)
@@ -117,7 +120,8 @@ func (pr *pricing) GetCandlesLatest(live bool, accountID string, instruments []s
 	return data, nil
 } // }}}
 
-// GetPricingInformation
+// GetPricingInformation is to get pricing information for a specified
+// list of Instruments within an Account.
 func (pr *pricing) GetPricingInformation(live bool, accountID string, instruments []string, querys ...pricingOpts) (*pricingInformation, error) { // {{{
 	querys = append(querys, pr.Query.WithInstruments(instruments))
 	q := newPricingQuery(querys...)
@@ -140,7 +144,19 @@ func (pr *pricing) GetPricingInformation(live bool, accountID string, instrument
 	return data, nil
 } // }}}
 
-// GetStreamingPrice
+// GetStreamingPrice is to get a stream of Account Prices starting from
+// when the request is made. This pricing stream does not include every single
+// price created for the Account, but instead will provide at most 4 prices
+// per second (every 250 milliseconds) for each instrument being requested.
+// If more than one price is created for an instrument during the
+// 250 millisecond window, only the price in effect at the end of the window
+// is sent. This means that during periods of rapid price movement, subscribers
+// to this stream will not be sent every price. Pricing windows for different
+// connections to the price stream are not all aligned in the same way
+// (i.e. they are not all aligned to the top of the second).
+// This means that during periods of rapid price movement, different
+// subscribers may observe different prices depending on their alignment.
+// Note: This endpoint is served by the streaming URLs.
 func (pr *pricing) GetStreamingPrice(live bool, accountID string, instruments []string, querys ...pricingOpts) (string, error) { // {{{
 	querys = append(querys, pr.Query.WithInstruments(instruments))
 	q := newPricingQuery(querys...)
@@ -213,6 +229,7 @@ func newPricingQuery(querys ...pricingOpts) *pricingQuery {
 
 type pricingFunc struct{}
 
+// WithCandleSpecifications is to list of candle specifications to get pricing for.
 func (*pricingFunc) WithCandleSpecifications(instruments []string, granularity, priceComponent string) pricingOpts {
 	return func(pq *pricingQuery) {
 		for k := range instruments {
@@ -237,7 +254,10 @@ func (*pricingFunc) WithFromTo(from, to time.Time) pricingOpts {
 	}
 }
 
-// WithSince: Date/Time filter to apply to the response. Only prices and home conversions (if requested) with a time later than this filter (i.e. the price has changed after the since time) will be provided, and are filtered independently.
+// WithSince is to filter to apply to the response.
+// Only prices and home conversions (if requested) with a time later than
+// this filter (i.e. the price has changed after the since time) will
+// be provided, and are filtered independently.
 func (*pricingFunc) WithSince(since time.Time) pricingOpts {
 	return func(pq *pricingQuery) {
 		if since.Unix() > time.Now().Unix() {
@@ -249,7 +269,8 @@ func (*pricingFunc) WithSince(since time.Time) pricingOpts {
 	}
 }
 
-// WithUnits: The number of units used to calculate the volume-weighted average bid and ask prices in the returned candles. [default=1]
+// WithUnits is the number of units used to calculate the volume-weighted
+// average bid and ask prices in the returned candles. [default=1]
 func (*pricingFunc) WithUnits(units float64) pricingOpts {
 	return func(pq *pricingQuery) {
 		if units < 1 {
@@ -261,21 +282,24 @@ func (*pricingFunc) WithUnits(units float64) pricingOpts {
 	}
 }
 
-// WithInstruments: List of InstrumentName (csv)	List of Instruments to get pricing for. [required]
+// WithInstruments is to list of Instruments to get pricing for.
 func (*pricingFunc) WithInstruments(instruments []string) pricingOpts {
 	return func(pq *pricingQuery) {
 		pq.Instruments = strings.Join(instruments, ",")
 	}
 }
 
-// WithPrice: The Price component(s) to get candlestick data for. [default=M]
+// WithPrice is the Price component(s) to get candlestick data for.
 func (*pricingFunc) WithPrice(priceComponent string) pricingOpts {
 	return func(pq *pricingQuery) {
 		pq.Price = priceComponent
 	}
 }
 
-// WithCount: The number of candlesticks to return in the response. Count should not be specified if both the start and end parameters are provided, as the time range combined with the granularity will determine the number of candlesticks to return. [default=500, maximum=5000]
+// WithCount is the number of candlesticks to return in the response.
+// Count should not be specified if both the start and end parameters are
+// provided, as the time range combined with the granularity will determine
+// the number of candlesticks to return. [default=500, maximum=5000]
 func (*pricingFunc) WithCount(count int) pricingOpts {
 	return func(pq *pricingQuery) {
 		if count < 1 || count > 5000 {
@@ -286,37 +310,50 @@ func (*pricingFunc) WithCount(count int) pricingOpts {
 	}
 }
 
-// WithoutIncludeFirst:  flag that controls whether the candlestick that is covered by the from time should be included in the results. This flag enables clients to use the timestamp of the last completed candlestick received to poll for future candlesticks but avoid receiving the previous candlestick repeatedly. [default=True]
+// WithoutIncludeFirst is a flag that controls whether the candlestick
+// that is covered by the from time should be included in the results.
+// This flag enables clients to use the timestamp of the last completed
+// candlestick received to poll for future candlesticks but avoid receiving
+// the previous candlestick repeatedly. [default=True]
 func (*pricingFunc) WithoutIncludeFirst() pricingOpts {
 	return func(pq *pricingQuery) { pq.IncludeFirst = "false" }
 }
 
-// WithGranularity:  granularity of the candlesticks to fetch [default=S5]
+// WithGranularity is granularity of the candlesticks to fetch [default=S5]
 func (*pricingFunc) WithGranularity(granularity string) pricingOpts {
 	return func(pq *pricingQuery) { pq.Granularity = granularity }
 }
 
-// WithoutSnapshot: that enables/disables the sending of a pricing snapshot when initially connecting to the stream. [default=True]
+// WithoutSnapshot is that enables/disables the sending of a pricing snapshot
+// when initially connecting to the stream. [default=True]
 func (*pricingFunc) WithoutSnapshot() pricingOpts {
 	return func(pq *pricingQuery) { pq.Snapshot = "false" }
 }
 
-// WithIncludeHomeConversions: that enables the inclusion of the homeConversions field in the returned response. An entry will be returned for each currency in the set of all base and quote currencies present in the requested instruments list. [default=False]
+// WithIncludeHomeConversions is that enables the inclusion of the
+// homeConversions field in the returned response. An entry will be returned
+// for each currency in the set of all base and quote currencies present
+// in the requested instruments list. [default=False]
 func (*pricingFunc) WithIncludeHomeConversions() pricingOpts {
 	return func(pq *pricingQuery) { pq.IncludeHomeConversions = "true" }
 }
 
-// WithWeeklyAlignment:  day of the week used for granularities that have weekly alignment. [default=Friday]
+// WithWeeklyAlignment is a day of the week used for granularities that
+// have weekly alignment. [default=Friday]
 func (*pricingFunc) WithWeeklyAlignment(weeklyAlignment string) pricingOpts {
 	return func(pq *pricingQuery) { pq.WeeklyAlignment = weeklyAlignment }
 }
 
-// WithAlignmentTimezone:  timezone to use for the dailyAlignment parameter. Candlesticks with daily alignment will be aligned to the dailyAlignment hour within the alignmentTimezone. Note that the returned times will still be represented in UTC. [default=America/New_York]
+// WithAlignmentTimezone is timezone to use for the dailyAlignment parameter.
+// Candlesticks with daily alignment will be aligned to the dailyAlignment
+// hour within the alignmentTimezone. Note that the returned times will still
+// be represented in UTC. [default=America/New_York]
 func (*pricingFunc) WithAlignmentTimezone(timezone string) pricingOpts {
 	return func(pq *pricingQuery) { pq.AlignmentTimezone = timezone }
 }
 
-// WithDailyAlignment: hour of the day (in the specified timezone) to use for granularities that have daily alignments. [default=17, minimum=0, maximum=23]
+// WithDailyAlignment is hour of the day (in the specified timezone) to use
+// for granularities that have daily alignments. [default=17, minimum=0, maximum=23]
 func (*pricingFunc) WithDailyAlignment(alignment int) pricingOpts {
 	return func(pq *pricingQuery) {
 		if alignment < 0 || alignment > 23 {
@@ -327,7 +364,10 @@ func (*pricingFunc) WithDailyAlignment(alignment int) pricingOpts {
 	}
 }
 
-// WithSmooth: flag that controls whether the candlestick is “smoothed” or not. A smoothed candlestick uses the previous candle’s close price as its open price, while an unsmoothed candlestick uses the first price from its time range as its open price. [default=False]
+// WithSmooth is a flag that controls whether the candlestick is “smoothed”
+// or not. A smoothed candlestick uses the previous candle’s close price as
+// its open price, while an unsmoothed candlestick uses the first price from
+// its time range as its open price. [default=False]
 func (*pricingFunc) WithSmooth() pricingOpts {
 	return func(pq *pricingQuery) { pq.Smooth = "true" }
 }

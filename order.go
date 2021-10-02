@@ -18,6 +18,7 @@ type order struct {
 	Query  *orderQueryFunc
 }
 
+// NewOrderConnection is create connection for ORDER API.
 func NewOrderConnection(token string) *order {
 	conn := &order{}
 	conn.token = token
@@ -188,18 +189,26 @@ func (*orderConfigFunc) WithTrailingStopLossOnFill(distance float64, timeInForce
 	}
 }
 
+// WithDistance is specifies the distance (in price units) from
+// the Trade’s open price to use as the Stop Loss Order price.
+// Only one of the distance and price fields may be specified.
 func (*orderConfigFunc) WithDistance(distance float64) configOpts {
 	return func(co *configOrder) { co.Order.Distance = distance }
 }
 
+// WithClientTradeID is the client ID of the Trade to be closed when
+// the price threshold is breached.
 func (*orderConfigFunc) WithClientTradeID(clientTradeID string) configOpts {
 	return func(co *configOrder) { co.Order.ClientTradeID = clientTradeID }
 }
 
+// WithTradeID is he ID of the Trade to close when the price threshold is breached.
 func (*orderConfigFunc) WithTradeID(tradeID string) configOpts {
 	return func(co *configOrder) { co.Order.TradeID = tradeID }
 }
 
+// WithPrice is the price that the Stop Loss Order will be triggered at.
+// Only one of the price and distance fields may be specified.
 func (*orderConfigFunc) WithPrice(price float64) configOpts {
 	return func(co *configOrder) { co.Order.Price = price }
 }
@@ -211,6 +220,23 @@ func (*orderConfigFunc) WithUnits(units float64) configOpts {
 	return func(co *configOrder) { co.Order.Units = units }
 }
 
+// WithTriggerCondition is specification of which price component should
+// be used when determining if an Order should be triggered and filled.
+// This allows Orders to be triggered based on the bid, ask, mid,
+// default (ask for buy, bid for sell) or inverse (ask for sell, bid for buy)
+// price depending on the desired behaviour. Orders are always filled using
+// their default price component. This feature is only provided through the
+// REST API. Clients who choose to specify a non-default trigger condition
+// will not see it reflected in any of OANDA’s proprietary or partner trading
+// platforms, their transaction history or their account statements.
+// OANDA platforms always assume that an Order’s trigger condition is set
+// to the default value when indicating the distance from an Order’s trigger
+// price, and will always provide the default trigger condition when creating
+// or modifying an Order. A special restriction applies when creating a
+// Guaranteed Stop Loss Order. In this case the TriggerCondition value
+// must either be “DEFAULT”, or the “natural” trigger side “DEFAULT” results in.
+// So for a Guaranteed Stop Loss Order for a long trade valid values are
+// “DEFAULT” and “BID”, and for short trades “DEFAULT” and “ASK” are valid.
 func (*orderConfigFunc) WithTriggerCondition(triggerCondition string) configOpts {
 	return func(co *configOrder) { co.Order.TriggerCondition = triggerCondition }
 }
@@ -241,6 +267,8 @@ func (*orderConfigFunc) WithTakeProfitOnFill(gtdTime, timeInForce string, price 
 	}
 }
 
+// WithPositionFill is specification of how Positions in the Account
+// are modified when the Order is filled.
 func (*orderConfigFunc) WithPositionFill(positionFill string) configOpts {
 	return func(co *configOrder) { co.Order.PositionFill = positionFill }
 }
@@ -341,7 +369,8 @@ func (cf *configOrder) convertConfig() ([]byte, error) {
 
 // ----------------  ORDER MAIN FUNCTION-------------------------
 
-func (od *order) GetOrderList(live bool, accountID string, querys ...orderOpts) (string, error) {
+// Get a list of Orders for an Account
+func (od *order) GetOrderList(live bool, accountID string, querys ...orderOpts) (string, error) { // {{{
 	q := newOrderQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Order.Orders)
 	ep = fmt.Sprintf(ep, accountID)
@@ -356,9 +385,10 @@ func (od *order) GetOrderList(live bool, accountID string, querys ...orderOpts) 
 		return "", err
 	}
 	return string(resp), nil
-}
+} // }}}
 
-func (od *order) GetPendingOrders(live bool, accountID string) (string, error) {
+// GetPendingOrders is to list all pending Orders in an Account
+func (od *order) GetPendingOrders(live bool, accountID string) (string, error) { // {{{
 	ep := endpoint.GetEndpoint(live, endpoint.Order.PendingOrder)
 	od.endpoint = fmt.Sprintf(ep, accountID)
 	od.method = http.MethodGet
@@ -367,9 +397,10 @@ func (od *order) GetPendingOrders(live bool, accountID string) (string, error) {
 		return string(resp), err
 	}
 	return string(resp), err
-}
+} // }}}
 
-func (od *order) GetOrderDetails(live bool, accountID, tradeID string) (string, error) {
+// GetOrderDetails is to get details for a single Order in an Account
+func (od *order) GetOrderDetails(live bool, accountID, tradeID string) (string, error) { // {{{
 	ep := endpoint.GetEndpoint(live, endpoint.Order.OrderDetails)
 	od.endpoint = fmt.Sprintf(ep, accountID, tradeID)
 	od.method = http.MethodGet
@@ -378,8 +409,7 @@ func (od *order) GetOrderDetails(live bool, accountID, tradeID string) (string, 
 		return string(resp), err
 	}
 	return string(resp), nil
-
-}
+} // }}}
 
 func PutOrderReplace() {}
 
