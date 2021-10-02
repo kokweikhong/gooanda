@@ -9,11 +9,11 @@ import (
 func urlAddQuery(endpoint string, querys interface{}) (string, error) {
 	u, err := url.Parse(endpoint)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to parse url from %v, %v", endpoint, err)
 	}
 	q, err := url.ParseQuery(u.RawQuery)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to parse query from url %v, %v", endpoint, err)
 	}
 	qrys, err := convertQuerys(querys)
 	if err != nil {
@@ -30,11 +30,11 @@ func convertQuerys(querys interface{}) (map[string]interface{}, error) {
 	mapQuery := make(map[string]interface{})
 	data, err := json.Marshal(querys)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to marshal data at %T, %v", querys, err)
 	}
 	err = json.Unmarshal(data, &mapQuery)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal querys %s to %T, %v", string(data), mapQuery, err)
 	}
 	return mapQuery, nil
 }
