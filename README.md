@@ -1,4 +1,6 @@
 
+## Features
+
 ## TODO
 
 #### OANDA endpoints
@@ -16,7 +18,7 @@
     - [x] [GET] InstrumentPositionBook
 - Order
     - [ ]Need to create data struct, now only json response.
-    - [ ] [POST] OrderCreate
+    - [X] [POST] OrderCreate
         - [X] MarketOrderRequest
         - [X] LimitOrderRequest
         - [X] StopOrderRequest
@@ -46,6 +48,11 @@
     - [X] [GET] PositionByAccountID
     - [X] [PUT] PositionCloseoutByInstrument
 - Transaction
+    - [X] [GET] TransactionList
+    - [X] [GET] TransactionById
+    - [X] [GET] TransactionIdRangeById
+    - [X] [GET] TransactionRange
+    - [ ] [GET] TransactionStream
 - Pricing
     - [x] [GET] CandlesLatest
     - [x] [GET] PricingInformation
@@ -53,7 +60,4 @@
         - Need to figure out timeout issue when retrieving data
     - [x] [GET] CandlestickInstrument
 
-#### Features
 
-- [ ] Function to convert struct to json format
-- [ ] Add POST request function
