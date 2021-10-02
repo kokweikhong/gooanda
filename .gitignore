@@ -4,3 +4,4 @@ instrument_test.go
 pricing_test.go
 trade_test.go
 position_test.go
+transaction_test.go
