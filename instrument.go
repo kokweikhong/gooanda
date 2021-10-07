@@ -17,7 +17,7 @@ type InstrumentCandles struct {
 		Bid      struct{ instrumentOHLC } `json:"bid"`
 		Mid      struct{ instrumentOHLC } `json:"mid"`
 		Complete bool                     `json:"complete"`
-		Time     string                   `json:"time"`
+		Time     time.Time                `json:"time"`
 		Volume   float64                  `json:"volume"`
 	} `json:"candles"`
 	Granularity string `json:"granularity"`
@@ -35,10 +35,10 @@ type InstrumentPositionBook struct {
 }
 
 type instrumentBook struct {
-	Instrument  string `json:"instrument"`
-	Time        string `json:"time"`
-	Price       string `json:"price"`
-	BucketWidth string `json:"bucketWidth"`
+	Instrument  string    `json:"instrument"`
+	Time        time.Time `json:"time"`
+	Price       string    `json:"price"`
+	BucketWidth string    `json:"bucketWidth"`
 	Buckets     []struct {
 		Price             string `json:"price"`
 		LongCountPercent  string `json:"longCountPercent"`
