@@ -18,7 +18,7 @@ type InstrumentCandles struct {
 		Mid      struct{ instrumentOHLC } `json:"mid"`
 		Complete bool                     `json:"complete"`
 		Time     time.Time                `json:"time"`
-		Volume   float64                  `json:"volume,string"`
+		Volume   float64                  `json:"volume"`
 	} `json:"candles"`
 	Granularity string `json:"granularity"`
 	Instrument  string `json:"instrument"`
