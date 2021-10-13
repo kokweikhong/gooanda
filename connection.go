@@ -16,7 +16,7 @@ type connection struct {
 }
 
 func (co *connection) connect() ([]byte, error) {
-	client := &http.Client{Timeout: 2 * time.Second}
+	client := &http.Client{Timeout: 5 * time.Second}
 	var buffer bytes.Buffer
 	buffer.WriteString("Bearer ")
 	buffer.WriteString(co.token)
