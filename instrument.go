@@ -11,7 +11,7 @@ import (
 )
 
 // GetInstrumentCandles data structure
-type InstrumentCandles struct {
+type instrumentCandles struct {
 	Candles []struct {
 		Ask      struct{ instrumentOHLC } `json:"ask"`
 		Bid      struct{ instrumentOHLC } `json:"bid"`
@@ -25,12 +25,12 @@ type InstrumentCandles struct {
 }
 
 // GetInstrumentOrderBook data structure
-type InstrumentOrderBook struct {
+type instrumentOrderBook struct {
 	OrderBook instrumentBook `json:"orderBook"`
 }
 
 // GetInstrumentPositionBook data structure.
-type InstrumentPositionBook struct {
+type instrumentPositionBook struct {
 	PositionBook instrumentBook `json:"positionBook"`
 }
 
@@ -75,7 +75,7 @@ func (in *instrument) connect() ([]byte, error) {
 }
 
 // GetInstrumentCandles is to fetch candlestick data for an instrument.
-func (in *instrument) GetCandles(live bool, instrument string, querys ...instrumentOpts) (*InstrumentCandles, error) { // {{{
+func (in *instrument) GetCandles(live bool, instrument string, querys ...instrumentOpts) (*instrumentCandles, error) { // {{{
 	q := newInstrumentQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Instrument.InstrumentCandles)
 	url := fmt.Sprintf(ep, instrument)
@@ -89,7 +89,7 @@ func (in *instrument) GetCandles(live bool, instrument string, querys ...instrum
 	if err != nil {
 		return nil, err
 	}
-	var data = &InstrumentCandles{}
+	var data = &instrumentCandles{}
 	if err = json.Unmarshal(resp, &data); err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (in *instrument) GetCandles(live bool, instrument string, querys ...instrum
 } // }}}
 
 // GetInstrumentOrderBook is to fetch an order book for an instrument.
-func (in *instrument) GetOrderBook(live bool, instrument string, querys ...instrumentOpts) (*InstrumentOrderBook, error) { // {{{
+func (in *instrument) GetOrderBook(live bool, instrument string, querys ...instrumentOpts) (*instrumentOrderBook, error) { // {{{
 	q := newInstrumentQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Instrument.InstrumentOrderBook)
 	url := fmt.Sprintf(ep, instrument)
@@ -111,7 +111,7 @@ func (in *instrument) GetOrderBook(live bool, instrument string, querys ...instr
 	if err != nil {
 		return nil, err
 	}
-	var data = &InstrumentOrderBook{}
+	var data = &instrumentOrderBook{}
 	if err = json.Unmarshal(resp, &data); err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func (in *instrument) GetOrderBook(live bool, instrument string, querys ...instr
 } // }}}
 
 // GetInstrumentPositionBook is to fetch a position book for an instrument.
-func (in *instrument) GetPositionBook(live bool, instrument string, querys ...instrumentOpts) (*InstrumentPositionBook, error) { // {{{
+func (in *instrument) GetPositionBook(live bool, instrument string, querys ...instrumentOpts) (*instrumentPositionBook, error) { // {{{
 	q := newInstrumentQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Instrument.InstrumentPositionBook)
 	url := fmt.Sprintf(ep, instrument)
@@ -133,7 +133,7 @@ func (in *instrument) GetPositionBook(live bool, instrument string, querys ...in
 	if err != nil {
 		return nil, err
 	}
-	var data = &InstrumentPositionBook{}
+	var data = &instrumentPositionBook{}
 	if err = json.Unmarshal(resp, &data); err != nil {
 		return nil, err
 	}
@@ -143,10 +143,10 @@ func (in *instrument) GetPositionBook(live bool, instrument string, querys ...in
 type instrumentQuery struct {
 	Price             string `json:"price,omitempty"`
 	Granularity       string `json:"granularity,omitempty"`
-	Count             string `json:"count,omitempty"`
+	Count             int    `json:"count,string,omitempty"`
 	From              string `json:"from,omitempty"`
 	To                string `json:"to,omitempty"`
-	Smooth            string `json:"smooth,omitempty"`
+	Smooth            bool   `json:"smooth,string,omitempty"`
 	IncludeFirst      string `json:"includeFirst,omitempty"`
 	DailyAlignment    string `json:"dailyAlignment,omitempty"`
 	AlignmentTimezone string `json:"alignmentTimezone,omitempty"`
@@ -225,14 +225,14 @@ func (*instrumentFunc) WithWithoutIncludeFirst() instrumentOpts {
 // its time range as its open price. [default=False]
 func (*instrumentFunc) WithSmooth() instrumentOpts {
 	return func(iq *instrumentQuery) {
-		iq.Smooth = "true"
+		iq.Smooth = true
 	}
 }
 
 // WithFrom is the start of the time range to fetch candlesticks for.
 func (*instrumentFunc) WithFrom(from time.Time) instrumentOpts {
 	return func(iq *instrumentQuery) {
-		if from.Unix() < time.Now().Unix() {
+		if from.Unix() > time.Now().Unix() {
 			iq.From = ""
 			return
 		}
@@ -240,11 +240,22 @@ func (*instrumentFunc) WithFrom(from time.Time) instrumentOpts {
 	}
 }
 
+// WithTo is the end of the time range to fetch candlesticks for.
+func (*instrumentFunc) WithTo(to time.Time) instrumentOpts {
+	return func(iq *instrumentQuery) {
+		if to.Unix() > time.Now().Unix() {
+			iq.To = ""
+			return
+		}
+		iq.To = to.Format(time.RFC3339)
+	}
+}
+
 // WithFromTo is the start of the time range to fetch candlesticks for
 // and the end of the time range to fetch candlesticks for.
 func (*instrumentFunc) WithFromTo(from, to time.Time) instrumentOpts {
 	return func(iq *instrumentQuery) {
-		if to.Unix() > from.Unix() || to.Unix() > time.Now().Unix() {
+		if to.Unix() < from.Unix() || to.Unix() > time.Now().Unix() {
 			iq.From = ""
 			iq.To = ""
 			return
@@ -261,11 +272,10 @@ func (*instrumentFunc) WithFromTo(from, to time.Time) instrumentOpts {
 // determine the number of candlesticks to return. [default=500, maximum=5000]
 func (*instrumentFunc) WithCount(count int) instrumentOpts {
 	return func(iq *instrumentQuery) {
-		c := strconv.Itoa(count)
 		if count > 5000 {
-			iq.Count = "500"
+			iq.Count = 5000
 		}
-		iq.Count = c
+		iq.Count = count
 	}
 }
 
