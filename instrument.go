@@ -10,8 +10,8 @@ import (
 	"github.com/kokweikhong/gooanda/endpoint"
 )
 
-// GetInstrumentCandles data structure
-type instrumentCandles struct {
+// InstrumentCandles data structure
+type InstrumentCandles struct {
 	Candles []struct {
 		Ask      struct{ instrumentOHLC } `json:"ask"`
 		Bid      struct{ instrumentOHLC } `json:"bid"`
@@ -24,13 +24,13 @@ type instrumentCandles struct {
 	Instrument  string `json:"instrument"`
 }
 
-// GetInstrumentOrderBook data structure
-type instrumentOrderBook struct {
+// InstrumentOrderBook data structure
+type InstrumentOrderBook struct {
 	OrderBook instrumentBook `json:"orderBook"`
 }
 
-// GetInstrumentPositionBook data structure.
-type instrumentPositionBook struct {
+// InstrumentPositionBook data structure.
+type InstrumentPositionBook struct {
 	PositionBook instrumentBook `json:"positionBook"`
 }
 
@@ -75,7 +75,7 @@ func (in *instrument) connect() ([]byte, error) {
 }
 
 // GetInstrumentCandles is to fetch candlestick data for an instrument.
-func (in *instrument) GetCandles(live bool, instrument string, querys ...instrumentOpts) (*instrumentCandles, error) { // {{{
+func (in *instrument) GetCandles(live bool, instrument string, querys ...instrumentOpts) (*InstrumentCandles, error) { // {{{
 	q := newInstrumentQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Instrument.InstrumentCandles)
 	url := fmt.Sprintf(ep, instrument)
@@ -89,7 +89,7 @@ func (in *instrument) GetCandles(live bool, instrument string, querys ...instrum
 	if err != nil {
 		return nil, err
 	}
-	var data = &instrumentCandles{}
+	var data = &InstrumentCandles{}
 	if err = json.Unmarshal(resp, &data); err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (in *instrument) GetCandles(live bool, instrument string, querys ...instrum
 } // }}}
 
 // GetInstrumentOrderBook is to fetch an order book for an instrument.
-func (in *instrument) GetOrderBook(live bool, instrument string, querys ...instrumentOpts) (*instrumentOrderBook, error) { // {{{
+func (in *instrument) GetOrderBook(live bool, instrument string, querys ...instrumentOpts) (*InstrumentOrderBook, error) { // {{{
 	q := newInstrumentQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Instrument.InstrumentOrderBook)
 	url := fmt.Sprintf(ep, instrument)
@@ -111,7 +111,7 @@ func (in *instrument) GetOrderBook(live bool, instrument string, querys ...instr
 	if err != nil {
 		return nil, err
 	}
-	var data = &instrumentOrderBook{}
+	var data = &InstrumentOrderBook{}
 	if err = json.Unmarshal(resp, &data); err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func (in *instrument) GetOrderBook(live bool, instrument string, querys ...instr
 } // }}}
 
 // GetInstrumentPositionBook is to fetch a position book for an instrument.
-func (in *instrument) GetPositionBook(live bool, instrument string, querys ...instrumentOpts) (*instrumentPositionBook, error) { // {{{
+func (in *instrument) GetPositionBook(live bool, instrument string, querys ...instrumentOpts) (*InstrumentPositionBook, error) { // {{{
 	q := newInstrumentQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Instrument.InstrumentPositionBook)
 	url := fmt.Sprintf(ep, instrument)
@@ -133,7 +133,7 @@ func (in *instrument) GetPositionBook(live bool, instrument string, querys ...in
 	if err != nil {
 		return nil, err
 	}
-	var data = &instrumentPositionBook{}
+	var data = &InstrumentPositionBook{}
 	if err = json.Unmarshal(resp, &data); err != nil {
 		return nil, err
 	}
