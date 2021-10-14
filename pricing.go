@@ -43,13 +43,12 @@ type pricingInformation struct { // {{{
 		} `json:"asks"`
 		CloseoutBid                string `json:"closeoutBid"`
 		CloseoutAsk                string `json:"closeoutAsk"`
-		Status                     string `json:"status"`
 		Tradeable                  bool   `json:"tradeable"`
 		QuoteHomeConversionFactors struct {
 			PositiveUnits string `json:"positiveUnits"`
 			NegativeUnits string `json:"negativeUnits"`
-			Instrument    string `json:"instrument"`
 		} `json:"quoteHomeConversionFactors"`
+		Instrument string `json:"instrument"`
 	} `json:"prices"`
 } // }}}
 
