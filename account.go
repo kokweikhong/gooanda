@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/kokweikhong/gooanda/endpoint"
 )
@@ -22,11 +23,11 @@ type accountList struct { // {{{
 type accountById struct { // {{{
 	Account struct {
 		accountGlobal
-		Postions []struct {
+		Positions []struct {
 			Instrument   string                    `json:"instrument"`
 			Long         struct{ accountPosition } `json:"long"`
 			Short        struct{ accountPosition } `json:"short"`
-			UnrealizedPL string                    `json:"unrealizedPL"`
+			UnrealizedPL float64                   `json:"unrealizedPL,string"`
 		} `json:"positions"`
 	} `json:"account"`
 } // }}}
@@ -35,62 +36,62 @@ type accountById struct { // {{{
 type accountSummary struct { // {{{
 	Account struct {
 		accountGlobal
-		ResettablePL    string `json:"resettablePL"`
-		UnrealizedPL    string `json:"unrealizedPL"`
-		WithdrawalLimit string `json:"withdrawalLimit"`
+		ResettablePL    float64 `json:"resettablePL,string"`
+		UnrealizedPL    float64 `json:"unrealizedPL,string"`
+		WithdrawalLimit float64 `json:"withdrawalLimit,string"`
 	} `json:"account"`
 } // }}}
 
 // GetAccountInstruments data structure.
 type accountInstruments struct { // {{{
 	Intruments []struct {
-		DisplayName                 string `json:"displayName"`
-		DisplayPrecision            int    `json:"displayPrecision"`
-		MarginRate                  string `json:"marginRate"`
-		MaximumOrderUnits           string `json:"maximumOrderUnits"`
-		MaximumPositionSize         string `json:"maximumPositionSize"`
-		MaximumTrailingStopDistance string `json:"maximumTrailingStopDistance"`
-		MinimumTradeSize            string `json:"minimumTradeSize"`
-		MinimumTrailingStopDistance string `json:"minimumTrailingStopDistance"`
-		Name                        string `json:"name"`
-		PipLocation                 int    `json:"pipLocation"`
-		TradeUnitsPrecision         int    `json:"tradeUnitsPrecision"`
-		Type                        string `json:"type"`
+		DisplayName                 string  `json:"displayName"`
+		DisplayPrecision            int     `json:"displayPrecision"`
+		MarginRate                  float64 `json:"marginRate,string"`
+		MaximumOrderUnits           float64 `json:"maximumOrderUnits,string"`
+		MaximumPositionSize         float64 `json:"maximumPositionSize,string"`
+		MaximumTrailingStopDistance float64 `json:"maximumTrailingStopDistance,string"`
+		MinimumTradeSize            float64 `json:"minimumTradeSize,string"`
+		MinimumTrailingStopDistance float64 `json:"minimumTrailingStopDistance,string"`
+		Name                        string  `json:"name"`
+		PipLocation                 int     `json:"pipLocation"`
+		TradeUnitsPrecision         int     `json:"tradeUnitsPrecision"`
+		Type                        string  `json:"type"`
 	} `json:"instruments"`
 	LastTransactionID string `json:"lastTransactionID"`
 } // }}}
 
 type accountGlobal struct { // {{{
-	NAV                         string `json:"NAV"`
-	Alias                       string `json:"alias"`
-	Balance                     string `json:"balance"`
-	CreatedByUserID             int    `json:"createdByUserID"`
-	CreatedTime                 string `json:"createdTime"`
-	Currency                    string `json:"currency"`
-	HedgingEnabled              bool   `json:"hedgingEnabled"`
-	Id                          string `json:"id"`
-	LastTransactionID           string `json:"lastTransactionID"`
-	MarginAvailable             string `json:"marginAvailable"`
-	MarginCloseoutMarginUsed    string `json:"marginCloseoutMarginUsed"`
-	MarginCloseoutNAV           string `json:"marginCloseoutNAV"`
-	MarginCloseoutPercent       string `json:"marginCloseoutPercent"`
-	MarginCloseoutPositionValue string `json:"marginCloseoutPositionValue"`
-	MarginCloseoutUnrealizedPL  string `json:"marginCloseoutUnrealizedPL"`
-	MarginRate                  string `json:"marginRate"`
-	MarginUsed                  string `json:"marginUsed"`
-	OpenPositionCount           int    `json:"openPositionCount"`
-	OpenTradeCount              int    `json:"openTradeCount"`
-	Orders                      []int  `json:"orders"`
-	PendingOrderCount           int    `json:"pendingOrderCount"`
-	PL                          string `json:"pl"`
-	PositionValue               string `json:"positionValue"`
+	NAV                         string      `json:"NAV"`
+	Alias                       string      `json:"alias"`
+	Balance                     float64     `json:"balance,string"`
+	CreatedByUserID             int         `json:"createdByUserID"`
+	CreatedTime                 time.Time   `json:"createdTime"`
+	Currency                    string      `json:"currency"`
+	HedgingEnabled              bool        `json:"hedgingEnabled"`
+	Id                          string      `json:"id"`
+	LastTransactionID           string      `json:"lastTransactionID"`
+	MarginAvailable             float64     `json:"marginAvailable,string"`
+	MarginCloseoutMarginUsed    float64     `json:"marginCloseoutMarginUsed,string"`
+	MarginCloseoutNAV           float64     `json:"marginCloseoutNAV,string"`
+	MarginCloseoutPercent       float64     `json:"marginCloseoutPercent,string"`
+	MarginCloseoutPositionValue float64     `json:"marginCloseoutPositionValue,string"`
+	MarginCloseoutUnrealizedPL  float64     `json:"marginCloseoutUnrealizedPL,string"`
+	MarginRate                  float64     `json:"marginRate,string"`
+	MarginUsed                  float64     `json:"marginUsed,string"`
+	OpenPositionCount           int         `json:"openPositionCount"`
+	OpenTradeCount              int         `json:"openTradeCount"`
+	Orders                      interface{} `json:"orders"`
+	PendingOrderCount           int         `json:"pendingOrderCount"`
+	PL                          string      `json:"pl"`
+	PositionValue               string      `json:"positionValue"`
 } // }}}
 
 type accountPosition struct {
-	PL           string `json:"pl"`
-	ResettablePL string `json:"resettablePL"`
-	Units        string `json:"units"`
-	UnrealizedPL string `json:"unrealizedPL"`
+	PL           float64 `json:"pl,string"`
+	ResettablePL float64 `json:"resettablePL,string"`
+	Units        float64 `json:"units,string"`
+	UnrealizedPL float64 `json:"unrealizedPL,string"`
 }
 
 type account struct {
