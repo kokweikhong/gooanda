@@ -17,22 +17,22 @@ type pricingCandleLatest struct { // {{{
 		Instrument  string `json:"instrument"`
 		Granularity string `json:"granularity"`
 		Candles     []struct {
-			Complete bool    `json:"complete"`
-			Volume   float64 `json:"volume"`
-			Time     string  `json:"time"`
-			Bid      ohlc    `json:"bid,omitempty"`
-			Ask      ohlc    `json:"ask,omitempty"`
-			Mid      ohlc    `json:"mid,omitempty"`
+			Complete bool      `json:"complete"`
+			Volume   float64   `json:"volume"`
+			Time     time.Time `json:"time"`
+			Bid      ohlc      `json:"bid,omitempty"`
+			Ask      ohlc      `json:"ask,omitempty"`
+			Mid      ohlc      `json:"mid,omitempty"`
 		} `json:"candles"`
 	} `json:"latestCandles"`
 } // }}}
 
 // GetPricingInformation data structure
 type pricingInformation struct { // {{{
-	Time   string `json:"time"`
+	Time   time.Time `json:"time"`
 	Prices []struct {
-		Type string `json:"type"`
-		Time string `json:"time"`
+		Type string    `json:"type"`
+		Time time.Time `json:"time"`
 		Bids []struct {
 			Price     string  `json:"price"`
 			Liquidity float64 `json:"liquidity"`
@@ -85,10 +85,10 @@ type pricingStream struct { // {{{
 } // }}}
 
 type ohlc struct {
-	Open  string `json:"o"`
-	High  string `json:"h"`
-	Low   string `json:"l"`
-	Close string `json:"c"`
+	Open  float64 `json:"o,string"`
+	High  float64 `json:"h,string"`
+	Low   float64 `json:"l,string"`
+	Close float64 `json:"c,string"`
 }
 
 type pricing struct {
