@@ -66,6 +66,24 @@ type pricingCandlestickInstrument struct { // {{{
 	} `json:"candles"`
 } // }}}
 
+type pricingStream struct { // {{{
+	Type string    `json:"type"`
+	Time time.Time `json:"time"`
+	Bids []struct {
+		Price     float64 `json:"price,string"`
+		Liquidity int     `json:"liquidity"`
+	} `json:"bids"`
+	Asks []struct {
+		Price     float64 `json:"price,string"`
+		Liquidity int     `json:"liquidity"`
+	} `json:"asks"`
+	CloseoutBid float64 `json:"closeoutBid,string"`
+	CloseoutAsk float64 `json:"closeoutAsk,string"`
+	Status      string  `json:"status"`
+	Tradeable   bool    `json:"tradeable"`
+	Instrument  string  `json:"instrument"`
+} // }}}
+
 type ohlc struct {
 	Open  string `json:"o"`
 	High  string `json:"h"`
@@ -156,22 +174,26 @@ func (pr *pricing) GetPricingInformation(live bool, accountID string, instrument
 // This means that during periods of rapid price movement, different
 // subscribers may observe different prices depending on their alignment.
 // Note: This endpoint is served by the streaming URLs.
-func (pr *pricing) GetStreamingPrice(live bool, accountID string, instruments []string, querys ...pricingOpts) (string, error) { // {{{
+func (pr *pricing) GetStreamingPrice(live bool, accountID string, instruments []string, querys ...pricingOpts) (*pricingStream, error) { // {{{
 	querys = append(querys, pr.Query.WithInstruments(instruments))
 	q := newPricingQuery(querys...)
 	ep := endpoint.GetEndpoint(live, endpoint.Pricing.PricingStream)
 	url := fmt.Sprintf(ep, accountID)
 	u, err := urlAddQuery(url, q)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	pr.endpoint = u
 	pr.method = http.MethodGet
 	resp, err := pr.connect()
+	result := &pricingStream{}
 	if err != nil {
-		return "", err
+		return result, err
 	}
-	return string(resp), nil
+	if err = json.Unmarshal(resp, &result); err != nil {
+		return result, err
+	}
+	return result, nil
 } // }}}
 
 // GetCandlestickInstrument fetch candlestick data for an instrument.
