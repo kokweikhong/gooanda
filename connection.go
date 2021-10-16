@@ -1,10 +1,12 @@
 package gooanda
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -33,9 +35,34 @@ func (co *connection) connect() ([]byte, error) {
 		return nil, fmt.Errorf("failed to request api after set token, %v", err)
 	}
 	defer resp.Body.Close()
+	var body []byte
+	if strings.Contains(co.endpoint, "stream") {
+		body, err = streamApiConnect(resp)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		body, err = restApiConnect(resp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return body, nil
+}
+
+func restApiConnect(resp *http.Response) ([]byte, error) {
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get response from %v, %v", co.endpoint, err)
+		return nil, err
+	}
+	return body, nil
+}
+
+func streamApiConnect(resp *http.Response) ([]byte, error) {
+	reader := bufio.NewReader(resp.Body)
+	body, err := reader.ReadBytes('\n')
+	if err != nil {
+		return nil, err
 	}
 	return body, nil
 }
