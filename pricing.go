@@ -57,12 +57,12 @@ type pricingCandlestickInstrument struct { // {{{
 	Instrument  string `json:"instrument"`
 	Granularity string `json:"granularity"`
 	Candles     []struct {
-		Complete bool    `json:"complete"`
-		Volume   float64 `json:"volume"`
-		Time     string  `json:"time"`
-		Mid      ohlc    `json:"mid,omitempty"`
-		Bid      ohlc    `json:"bid,omitempty"`
-		Ask      ohlc    `json:"ask,omitempty"`
+		Complete bool      `json:"complete"`
+		Volume   float64   `json:"volume"`
+		Time     time.Time `json:"time"`
+		Mid      ohlc      `json:"mid,omitempty"`
+		Bid      ohlc      `json:"bid,omitempty"`
+		Ask      ohlc      `json:"ask,omitempty"`
 	} `json:"candles"`
 } // }}}
 
